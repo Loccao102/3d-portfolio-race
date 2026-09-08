@@ -67,7 +67,7 @@ export const projectsData: ProjectCaseStudy[] = [
       'Zero external 3D asset downloads (100% procedural low-poly primitives).',
       'Average visitor session time increased by 4.2x compared to standard portfolio.',
     ],
-    github: 'https://github.com',
+    github: 'https://github.com/Loccao102/3d-portfolio-race',
     demo: 'https://demo.example.com',
     color: '#00f3ff',
   },

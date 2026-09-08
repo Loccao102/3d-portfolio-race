@@ -66,7 +66,7 @@ export const developerData: DeveloperProfile = {
     },
   ],
   contacts: {
-    github: 'https://github.com',
+    github: 'https://github.com/Loccao102',
     linkedin: 'https://linkedin.com',
     email: 'caotienloc.dev@gmail.com',
     telegram: 'https://t.me',
