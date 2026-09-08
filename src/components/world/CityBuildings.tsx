@@ -20,8 +20,14 @@ const ModelInstanceContent: React.FC<ModelInstanceProps> = ({
     const c = scene.clone(true);
     c.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+        const mesh = child as THREE.Mesh;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.frustumCulled = false;
+        // Force bounding sphere so frustum culling (if re-enabled) works correctly
+        if (mesh.geometry) {
+          mesh.geometry.computeBoundingSphere();
+        }
       }
     });
     return c;

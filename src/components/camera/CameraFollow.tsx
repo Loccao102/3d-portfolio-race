@@ -15,19 +15,19 @@ interface CameraFollowProps {
   targetRef: React.RefObject<RapierRigidBody | null>;
 }
 
-const FOV_NORMAL = 42;
-const FOV_BOOST = 58;
+const FOV_NORMAL = 46;
+const FOV_BOOST = 60;
 
 export const CameraFollow: React.FC<CameraFollowProps> = ({ targetRef }) => {
   const { camera } = useThree();
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const isBoosting = useGameStore((state) => state.isBoosting);
 
-  // Isometric follow offsets: Behind and elevated
-  const ELEVATION = 14.0;
-  const DISTANCE = 18.0;
-  const POSITION_LERP = 0.08;
-  const LOOKAT_LERP = 0.12;
+  // Follow offsets: further back and higher to see surrounding city
+  const ELEVATION = 16.0;
+  const DISTANCE = 22.0;
+  const POSITION_LERP = 0.07;
+  const LOOKAT_LERP = 0.10;
   const FOV_LERP = 0.06;
 
   useFrame(() => {

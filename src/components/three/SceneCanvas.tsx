@@ -24,8 +24,8 @@ export const SceneCanvas: React.FC = () => {
         shadows
         dpr={[1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.5)]}
         camera={{
-          position: [0, 16, 22],
-          fov: 40,
+          position: [0, 20, 28],
+          fov: 46,
           near: 0.5,
           far: 450,
         }}
