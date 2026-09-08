@@ -21,17 +21,19 @@ const CYBER_PALETTES = [
   { body: '#31102e', accent: '#f472b6', glow: '#f472b6' }, // Neon Hot Pink
 ];
 
+export const DEFAULT_PLAYER_PROFILE: PlayerProfile = {
+  id: 'pilot-local',
+  name: 'CYBER-PILOT #01',
+  bodyColor: '#0f172a',
+  accentColor: '#00f3ff',
+  glowColor: '#00f3ff',
+  carNumber: '01',
+};
+
 // Generate or retrieve persistent visitor profile from localStorage
 export function getOrCreatePlayerProfile(): PlayerProfile {
   if (typeof window === 'undefined') {
-    return {
-      id: 'pilot-local',
-      name: 'CYBER-PILOT #01',
-      bodyColor: '#0f172a',
-      accentColor: '#00f3ff',
-      glowColor: '#00f3ff',
-      carNumber: '01',
-    };
+    return DEFAULT_PLAYER_PROFILE;
   }
 
   const STORAGE_KEY = 'cao_tien_loc_player_profile';

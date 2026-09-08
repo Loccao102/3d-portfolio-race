@@ -1,10 +1,24 @@
 'use client';
 
 import React from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Experience } from '../components/three/Experience';
+import dynamic from 'next/dynamic';
 import { OverlayUI } from '../components/ui/OverlayUI';
 import { useGameStore } from '../stores/useGameStore';
+
+// Dynamically import 3D Canvas with ssr: false to prevent SSR execution of WebGL, Rapier WASM, & Three.js
+const SceneCanvas = dynamic(() => import('../components/three/SceneCanvas'), {
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+        <div className="text-xs font-mono tracking-widest text-cyan-400/80 uppercase">
+          Initializing 3D Simulation...
+        </div>
+      </div>
+    </div>
+  ),
+});
 
 export default function Home() {
   const theme = useGameStore((state) => state.theme);
@@ -16,9 +30,6 @@ export default function Home() {
       ? '#0f172a'
       : '#050811';
 
-  const fogNear = theme === 'light' ? 160 : theme === 'dark' ? 150 : 140;
-  const fogFar = theme === 'light' ? 420 : theme === 'dark' ? 400 : 390;
-
   return (
     <main
       className="relative w-screen h-screen overflow-hidden transition-colors duration-500"
@@ -27,28 +38,8 @@ export default function Home() {
       {/* 2D HTML/DOM UI Layer */}
       <OverlayUI />
 
-      {/* 3D WebGL Canvas Viewport */}
-      <div className="absolute inset-0">
-        <Canvas
-          shadows
-          dpr={[1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.5)]}
-          camera={{
-            position: [0, 16, 22],
-            fov: 40,
-            near: 0.5,
-            far: 450,
-          }}
-          gl={{
-            antialias: true,
-            powerPreference: 'high-performance',
-          }}
-        >
-          {/* Dynamic Sky Color & Distant Soft Fog for 3 themes */}
-          <color attach="background" args={[bgColor]} />
-          <fog attach="fog" args={[bgColor, fogNear, fogFar]} />
-          <Experience />
-        </Canvas>
-      </div>
+      {/* 3D WebGL Canvas Viewport (Client-only) */}
+      <SceneCanvas />
     </main>
   );
 }

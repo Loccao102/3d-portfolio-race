@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { sound } from '../lib/soundEngine';
-import { PlayerProfile, getOrCreatePlayerProfile } from '../data/playerProfile';
+import { PlayerProfile, DEFAULT_PLAYER_PROFILE } from '../data/playerProfile';
 
 export type MilestoneId =
   | 'about'
@@ -119,7 +119,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  playerProfile: getOrCreatePlayerProfile(),
+  playerProfile: DEFAULT_PLAYER_PROFILE,
   setPlayerProfile: (profile) => set({ playerProfile: profile }),
 
   activeMilestone: null,
