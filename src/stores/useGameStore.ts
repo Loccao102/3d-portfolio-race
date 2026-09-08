@@ -64,9 +64,13 @@ interface GameState {
   passCheckpoint: (index: number) => void;
   crossFinishLine: () => void;
 
-  // Vehicle Telemetry for Minimap
+  // Vehicle Telemetry for Minimap & HUD
   vehiclePos: { x: number; z: number; heading: number };
   setVehiclePos: (pos: { x: number; z: number; heading: number }) => void;
+  vehicleSpeed: number; // km/h
+  setVehicleSpeed: (speed: number) => void;
+  isBoosting: boolean;
+  setIsBoosting: (boosting: boolean) => void;
 
   // UI & Experience State
   isIntroFinished: boolean;
@@ -197,6 +201,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   vehiclePos: { x: 0, z: 0, heading: 0 },
   setVehiclePos: (pos) => set({ vehiclePos: pos }),
+  vehicleSpeed: 0,
+  setVehicleSpeed: (speed) => set({ vehicleSpeed: speed }),
+  isBoosting: false,
+  setIsBoosting: (boosting) => set({ isBoosting: boosting }),
 
   isIntroFinished: false,
   setIntroFinished: (finished) => set({ isIntroFinished: finished }),

@@ -25,6 +25,8 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
 
     const playerProfile = useGameStore((state) => state.playerProfile);
     const setVehiclePos = useGameStore((state) => state.setVehiclePos);
+    const setVehicleSpeed = useGameStore((state) => state.setVehicleSpeed);
+    const setIsBoosting = useGameStore((state) => state.setIsBoosting);
     const targetWaypointId = useGameStore((state) => state.targetWaypoint);
     const tickRaceTimer = useGameStore((state) => state.tickRaceTimer);
 
@@ -157,6 +159,9 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         posSyncCounter.current = 0;
         const translation = body.translation();
         setVehiclePos({ x: translation.x, z: translation.z, heading });
+        // km/h = m/s × 3.6; clamp to 0
+        setVehicleSpeed(Math.max(0, Math.round(Math.abs(currentSpeed) * 3.6)));
+        setIsBoosting(isBoosting);
       }
 
       // 10. 3D Waypoint Compass Arrow pointing towards selected milestone

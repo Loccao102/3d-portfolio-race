@@ -11,6 +11,8 @@ export const RaceHUD: React.FC = () => {
   const raceNotification = useGameStore((state) => state.raceNotification);
   const playerProfile = useGameStore((state) => state.playerProfile);
   const theme = useGameStore((state) => state.theme);
+  const vehicleSpeed = useGameStore((state) => state.vehicleSpeed);
+  const isBoosting = useGameStore((state) => state.isBoosting);
 
   const isLight = theme === 'light';
   const isNight = theme === 'night';
@@ -62,6 +64,32 @@ export const RaceHUD: React.FC = () => {
             <span className={`text-[10px] tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>CALLSIGN</span>
             <span className={`font-bold tracking-wider ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{playerProfile.name}</span>
           </div>
+        </div>
+
+        {/* Digital Speedometer */}
+        <div className={`pointer-events-auto px-3 py-2 border backdrop-blur-md text-right ${panelBg}`}>
+          <div className={`text-[9px] tracking-widest mb-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            VELOCITY
+          </div>
+          <div className="flex items-baseline justify-end gap-1">
+            <span
+              className={`text-2xl font-bold tabular-nums leading-none transition-colors ${
+                isBoosting
+                  ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]'
+                  : isLight
+                  ? 'text-cyan-700'
+                  : 'text-cyan-300'
+              }`}
+            >
+              {vehicleSpeed}
+            </span>
+            <span className={`text-[9px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>km/h</span>
+          </div>
+          {isBoosting && (
+            <div className="text-[9px] font-bold tracking-widest text-amber-400 animate-pulse drop-shadow-[0_0_6px_rgba(245,158,11,0.6)] mt-0.5">
+              ⚡ NITRO
+            </div>
+          )}
         </div>
 
         {/* Live Race Timer Panel */}

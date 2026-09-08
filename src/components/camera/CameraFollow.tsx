@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
+import { useGameStore } from '../../stores/useGameStore';
 
 // Static scratch vectors to eliminate memory thrashing in render loop
 const scratchVehiclePos = new THREE.Vector3();
@@ -14,15 +15,20 @@ interface CameraFollowProps {
   targetRef: React.RefObject<RapierRigidBody | null>;
 }
 
+const FOV_NORMAL = 42;
+const FOV_BOOST = 58;
+
 export const CameraFollow: React.FC<CameraFollowProps> = ({ targetRef }) => {
   const { camera } = useThree();
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const isBoosting = useGameStore((state) => state.isBoosting);
 
   // Isometric follow offsets: Behind and elevated
   const ELEVATION = 14.0;
   const DISTANCE = 18.0;
   const POSITION_LERP = 0.08;
   const LOOKAT_LERP = 0.12;
+  const FOV_LERP = 0.06;
 
   useFrame(() => {
     if (!targetRef.current) return;
@@ -54,8 +60,15 @@ export const CameraFollow: React.FC<CameraFollowProps> = ({ targetRef }) => {
     camera.position.lerp(scratchDesiredPos, POSITION_LERP);
     currentLookAt.current.lerp(scratchDesiredLookAt, LOOKAT_LERP);
     camera.lookAt(currentLookAt.current);
+
+    // FOV Speed Warp during Nitro Boost (42deg normal → 58deg boost)
+    const targetFov = isBoosting ? FOV_BOOST : FOV_NORMAL;
+    const perspCamera = camera as THREE.PerspectiveCamera;
+    if (Math.abs(perspCamera.fov - targetFov) > 0.1) {
+      perspCamera.fov = THREE.MathUtils.lerp(perspCamera.fov, targetFov, FOV_LERP);
+      perspCamera.updateProjectionMatrix();
+    }
   });
 
   return null;
 };
-
