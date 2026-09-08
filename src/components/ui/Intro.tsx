@@ -76,8 +76,9 @@ export const Intro: React.FC = () => {
             stage >= 2 ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <div className="text-[11px] text-cyan-300 font-semibold px-4 py-1.5 bg-cyan-950/40 border border-cyan-500/30 tracking-widest">
-            WASD / ARROWS / JOYSTICK TO DRIVE
+          <div className="text-[11px] text-cyan-300 font-semibold px-4 py-1.5 bg-cyan-950/40 border border-cyan-500/30 tracking-widest flex flex-col gap-0.5">
+            <span>WASD / ARROWS / JOYSTICK TO DRIVE</span>
+            <span className="text-[10px] text-amber-400 font-bold">[SHIFT] FOR NITRO BOOST</span>
           </div>
 
           <button

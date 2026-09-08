@@ -113,7 +113,7 @@ export const Experience: React.FC = () => {
         <ContactStation />
 
         {/* Customized Playable Cyber-Roadster */}
-        <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 0]} />
+        <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 14]} />
       </Physics>
 
       {/* Isometric Follow Camera */}

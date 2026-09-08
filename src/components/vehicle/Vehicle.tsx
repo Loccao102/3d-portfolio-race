@@ -41,10 +41,12 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       isReversing: false,
     });
 
-    // Tuned Realistic Arcade Physics Parameters
-    const MAX_FORWARD_SPEED = 24.0;
+    // Tuned Realistic Arcade Physics Parameters with Nitro Boost
+    const BASE_MAX_SPEED = 24.0;
+    const BOOST_MAX_SPEED = 36.0;
     const MAX_REVERSE_SPEED = 8.5; // Realistic lower top speed in reverse
-    const ACCEL = 25.0;
+    const BASE_ACCEL = 25.0;
+    const BOOST_ACCEL = 48.0;     // Instant acceleration burst during Nitro
     const REVERSE_ACCEL = 12.0;   // Progressive, gentle reverse acceleration
     const FORWARD_TURN_SPEED = 2.7;
     const REVERSE_TURN_SPEED = 2.1; // Smooth caster steering in reverse
@@ -59,10 +61,14 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       // Tick global race timer if race is active
       tickRaceTimer(clampedDelta);
 
-      // 1. Throttle / Acceleration & Realistic Reverse Dynamics
+      // 1. Throttle / Acceleration & Realistic Reverse Dynamics (with Nitro Boost)
+      const isBoosting = controls.boost && controls.forward > 0;
+      const maxSpeed = isBoosting ? BOOST_MAX_SPEED : BASE_MAX_SPEED;
+      const currentAccel = isBoosting ? BOOST_ACCEL : BASE_ACCEL;
+
       if (controls.forward > 0) {
         // Forward drive
-        speedRef.current = Math.min(speedRef.current + ACCEL * clampedDelta, MAX_FORWARD_SPEED);
+        speedRef.current = Math.min(speedRef.current + currentAccel * clampedDelta, maxSpeed);
       } else if (controls.forward < 0) {
         // Progressive Reverse drive
         speedRef.current = Math.max(speedRef.current - REVERSE_ACCEL * clampedDelta, -MAX_REVERSE_SPEED);
@@ -134,13 +140,15 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         );
       }
 
-
-
-      // 8. Visual Thruster Flame Intensity
+      // 8. Visual Thruster Flame Intensity (Amplified during Nitro Boost)
       if (thrusterRef.current) {
         const isDrivingForward = controls.forward > 0 && currentSpeed > 0;
-        const targetScale = isDrivingForward ? 1.0 + Math.random() * 0.4 : 0.2;
-        thrusterRef.current.scale.set(1, 1, targetScale);
+        const targetScale = isBoosting
+          ? 2.4 + Math.random() * 0.8
+          : isDrivingForward
+          ? 1.0 + Math.random() * 0.4
+          : 0.2;
+        thrusterRef.current.scale.set(isBoosting ? 1.4 : 1, isBoosting ? 1.4 : 1, targetScale);
       }
 
       // 9. Sync Vehicle Coordinates to MiniMap Store (every 4 frames)
@@ -157,8 +165,10 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         const targetWP = MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypointId) || MILESTONE_WAYPOINTS[0];
         const dx = targetWP.x - currentPos.x;
         const dz = targetWP.z - currentPos.z;
-        const targetAngle = Math.atan2(dx, dz);
-        waypointArrowRef.current.rotation.y = targetAngle - heading;
+        // Transform direction vector into vehicle's local frame
+        const localRight = dx * Math.cos(heading) - dz * Math.sin(heading);
+        const localForward = -dx * Math.sin(heading) - dz * Math.cos(heading);
+        waypointArrowRef.current.rotation.y = -Math.atan2(localRight, localForward);
       }
 
       // 11. State Sync for Lighting & Particles

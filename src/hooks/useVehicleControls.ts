@@ -5,6 +5,7 @@ export interface VehicleControlsState {
   forward: number; // -1 (reverse) to +1 (forward)
   turn: number;    // -1 (left) to +1 (right)
   brake: boolean;
+  boost: boolean;  // Nitro turbo boost
 }
 
 export function useVehicleControls() {
@@ -14,12 +15,14 @@ export function useVehicleControls() {
     left: false,
     right: false,
     brake: false,
+    boost: false,
   });
 
   const controls = useRef<VehicleControlsState>({
     forward: 0,
     turn: 0,
     brake: false,
+    boost: false,
   });
 
   const joystickInput = useGameStore((state) => state.joystickInput);
@@ -56,6 +59,10 @@ export function useVehicleControls() {
         case 'Space':
           keyboardState.current.brake = true;
           break;
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          keyboardState.current.boost = true;
+          break;
       }
     };
 
@@ -79,6 +86,10 @@ export function useVehicleControls() {
           break;
         case 'Space':
           keyboardState.current.brake = false;
+          break;
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          keyboardState.current.boost = false;
           break;
       }
     };
@@ -113,6 +124,8 @@ export function useVehicleControls() {
     controls.current.forward = Math.max(-1, Math.min(1, forward));
     controls.current.turn = Math.max(-1, Math.min(1, turn));
     controls.current.brake = keyboardState.current.brake;
+    const isMobileBoost = joystickInput.y > 0.95;
+    controls.current.boost = keyboardState.current.boost || isMobileBoost;
 
     return controls.current;
   };

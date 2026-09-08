@@ -9,7 +9,7 @@ interface ModelInstanceProps {
   scale?: [number, number, number] | number;
 }
 
-const ModelInstance: React.FC<ModelInstanceProps> = ({
+const ModelInstanceContent: React.FC<ModelInstanceProps> = ({
   url,
   position,
   rotation = [0, 0, 0],
@@ -36,6 +36,14 @@ const ModelInstance: React.FC<ModelInstanceProps> = ({
       rotation={rotation}
       scale={scaleArray}
     />
+  );
+};
+
+const ModelInstance: React.FC<ModelInstanceProps> = (props) => {
+  return (
+    <React.Suspense fallback={null}>
+      <ModelInstanceContent {...props} />
+    </React.Suspense>
   );
 };
 

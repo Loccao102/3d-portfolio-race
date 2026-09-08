@@ -43,7 +43,7 @@ export const MiniMap: React.FC = () => {
 
   const carX = projectX(vehiclePos.x);
   const carY = projectY(vehiclePos.z);
-  const carRotationDeg = (vehiclePos.heading * 180) / Math.PI;
+  const carRotationDeg = -((vehiclePos.heading * 180) / Math.PI);
 
   const handleWaypointClick = (id: MilestoneId) => {
     setTargetWaypoint(id);
@@ -231,14 +231,37 @@ export const MiniMap: React.FC = () => {
                 );
               })}
 
-              {/* Player Vehicle Marker */}
-              <g transform={`translate(${carX}, ${carY}) rotate(${carRotationDeg})`}>
+              {/* Target Navigation Dotted Guide Line */}
+              {targetWaypoint && (() => {
+                const targetWP = MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypoint);
+                if (!targetWP) return null;
+                const tx = projectX(targetWP.x);
+                const ty = projectY(targetWP.z);
+                return (
+                  <line
+                    x1={carX}
+                    y1={carY}
+                    x2={tx}
+                    y2={ty}
+                    stroke={targetWP.color}
+                    strokeWidth="1.2"
+                    strokeDasharray="3 3"
+                    opacity={0.65}
+                  />
+                );
+              })()}
+
+              {/* Player Vehicle Marker with Smooth Transition */}
+              <g
+                transform={`translate(${carX}, ${carY}) rotate(${carRotationDeg})`}
+                style={{ transition: 'transform 80ms linear' }}
+              >
                 <polygon
-                  points="0,-7 5,6 0,3 -5,6"
+                  points="0,-8 5.5,7 0,3.5 -5.5,7"
                   fill={playerCarFill}
                   stroke="#ffffff"
-                  strokeWidth="1"
-                  filter={isNight ? "drop-shadow(0 0 5px #00f3ff)" : undefined}
+                  strokeWidth="1.2"
+                  filter={isNight ? "drop-shadow(0 0 6px #00f3ff)" : undefined}
                 />
               </g>
             </svg>

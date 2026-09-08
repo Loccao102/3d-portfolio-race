@@ -186,6 +186,9 @@ export const HUD: React.FC = () => {
           <div><span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>S / ↓</span> : REVERSE</div>
           <div><span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>A / D</span> : STEER</div>
           <div><span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>SPACE</span> : BRAKE</div>
+          <div className="text-amber-400 font-semibold drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
+            <span className="font-bold">SHIFT</span> : NITRO BOOST
+          </div>
         </div>
 
         {/* Right Telemetry Column: Exploration + FPS Monitor */}
