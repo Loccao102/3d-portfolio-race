@@ -10,18 +10,20 @@ export const NitroOverlay: React.FC = () => {
   const isBoosting = useGameStore((state) => state.isBoosting);
 
   // SVG speed lines emanating from center
+  // Coordinates are rounded to 3dp to prevent SSR/client floating-point hydration mismatch
   const NUM_LINES = 24;
   const lines = Array.from({ length: NUM_LINES }, (_, i) => {
     const angle = (i / NUM_LINES) * 2 * Math.PI;
-    const innerR = 15;  // % of viewBox
-    const outerR = 58;  // % of viewBox
+    const innerR = 15;
+    const outerR = 58;
     const cx = 50;
     const cy = 50;
+    const r = (n: number) => Math.round(n * 1000) / 1000;
     return {
-      x1: cx + Math.cos(angle) * innerR,
-      y1: cy + Math.sin(angle) * innerR,
-      x2: cx + Math.cos(angle) * outerR,
-      y2: cy + Math.sin(angle) * outerR,
+      x1: r(cx + Math.cos(angle) * innerR),
+      y1: r(cy + Math.sin(angle) * innerR),
+      x2: r(cx + Math.cos(angle) * outerR),
+      y2: r(cy + Math.sin(angle) * outerR),
     };
   });
 
