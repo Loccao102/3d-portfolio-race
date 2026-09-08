@@ -2,6 +2,8 @@
 > **Interactive 3D Developer World & Grand Speed Circuit Playground**  
 > Built with **Next.js 15**, **React 19**, **Three.js**, **React Three Fiber**, **Rapier Physics**, and **Zustand**.
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FLoccao102%2F3d-portfolio-race)
+
 ---
 
 ## 🌌 1. PRODUCT VISION & EXPERIENCE PRINCIPLES
