@@ -99,27 +99,31 @@ export const Experience: React.FC = () => {
         <CityBuildings />
       </Suspense>
 
-      {/* Physics World Simulation */}
-      <Physics gravity={[0, -26, 0]} timeStep="vary">
-        {/* World Base Ground & Roads & Grand Speed Circuit */}
-        <Ground />
+      {/* Physics World Simulation — isolated in own Suspense so Rapier WASM
+          initialization never causes the outer SceneCanvas Suspense to hide
+          the entire scene (that's why everything went black after first frame) */}
+      <Suspense fallback={null}>
+        <Physics gravity={[0, -26, 0]} timeStep="vary">
+          {/* World Base Ground & Roads & Grand Speed Circuit */}
+          <Ground />
 
-        {/* Instanced City Props (Lamps, Barriers, Trees) — pure geometry, no async */}
-        <InstancedProps />
+          {/* Instanced City Props (Lamps, Barriers, Trees) — pure geometry, no async */}
+          <InstancedProps />
 
-        {/* Autonomous AI Rival Racers competing on the Speed Circuit */}
-        <RivalRacers />
+          {/* Autonomous AI Rival Racers competing on the Speed Circuit */}
+          <RivalRacers />
 
-        {/* The 5 Thematic Architectural Districts */}
-        <AboutDistrict />
-        <TechDistrict />
-        <ProjectGarage />
-        <ExperimentLab />
-        <ContactStation />
+          {/* The 5 Thematic Architectural Districts */}
+          <AboutDistrict />
+          <TechDistrict />
+          <ProjectGarage />
+          <ExperimentLab />
+          <ContactStation />
 
-        {/* Customized Playable Cyber-Roadster */}
-        <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 14]} />
-      </Physics>
+          {/* Customized Playable Cyber-Roadster */}
+          <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 14]} />
+        </Physics>
+      </Suspense>
 
       {/* Isometric Follow Camera */}
       <CameraFollow targetRef={vehicleRef} />
