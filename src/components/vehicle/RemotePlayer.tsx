@@ -4,6 +4,7 @@ import { RigidBody, CuboidCollider, RapierRigidBody, useBeforePhysicsStep } from
 import * as THREE from 'three';
 import { RemotePlayer as RemotePlayerType } from '../../stores/useNetworkStore';
 import { FerrariModel } from './FerrariModel';
+import { EmoteBubble } from './EmoteBubble';
 import { ContactShadows, Text } from '@react-three/drei';
 
 interface Props {
@@ -55,6 +56,16 @@ export const RemotePlayer: React.FC<Props> = ({ id, player }) => {
     body.setNextKinematicRotation(vCurrentQuat);
   });
 
+  const thrusterRef = useRef<THREE.Mesh>(null);
+
+  useFrame(() => {
+    if (thrusterRef.current) {
+      const isBoosting = player.pose?.isBoosting || false;
+      const targetScale = isBoosting ? 2.4 + Math.random() * 0.8 : 0.2;
+      thrusterRef.current.scale.set(isBoosting ? 1.4 : 1, isBoosting ? 1.4 : 1, targetScale);
+    }
+  });
+
   return (
     <RigidBody
       ref={bodyRef}
@@ -69,6 +80,8 @@ export const RemotePlayer: React.FC<Props> = ({ id, player }) => {
         friction={0.0} 
         restitution={0.4}
       />
+
+      <EmoteBubble id={id} />
 
       {/* Floating Name Tag */}
       <Text
@@ -94,6 +107,23 @@ export const RemotePlayer: React.FC<Props> = ({ id, player }) => {
           isReversing={player.pose?.isReversing || false}
           scale={0.95}
         />
+        
+        {/* Thruster Flame when accelerating */}
+        {player.pose?.isBoosting && (
+          <mesh
+            ref={thrusterRef}
+            position={[0, 0.35, 2.1]}
+            rotation={[Math.PI / 2, 0, 0]}
+          >
+            <cylinderGeometry args={[0.2, 0.02, 0.8, 8, 1, true]} />
+            <meshBasicMaterial
+              color={player.accentColor}
+              transparent
+              opacity={0.6}
+            />
+          </mesh>
+        )}
+
         <ContactShadows
           position={[0, 0.02, 0]}
           opacity={0.65}

@@ -13,6 +13,7 @@ import { useGameStore, MILESTONE_WAYPOINTS } from '../../stores/useGameStore';
 import { useNetworkStore } from '../../stores/useNetworkStore';
 import { VehicleEffects } from './VehicleEffects';
 import { FerrariModel } from './FerrariModel';
+import { EmoteBubble } from './EmoteBubble';
 import { ContactShadows } from '@react-three/drei';
 import { sound } from '../../lib/soundEngine';
 import {
@@ -43,6 +44,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const targetWaypointId = useGameStore((state) => state.targetWaypoint);
     const tickRaceTimer = useGameStore((state) => state.tickRaceTimer);
     const sendMove = useNetworkStore((state) => state.sendMove);
+    const myId = useNetworkStore((state) => state.myId);
 
     // Controller state is advanced by Rapier's fixed-step callbacks. The
     // visual model reads these refs each render frame without driving physics.
@@ -90,7 +92,6 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         setVehiclePos({ x: translation.x, z: translation.z, heading: state.heading });
         setVehicleSpeed(Math.max(0, Math.round(Math.abs(currentSpeed) * 3.6)));
         setIsBoosting(isBoosting);
-        
         sendMove({
           x: translation.x,
           y: translation.y,
@@ -100,7 +101,8 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
           rz: rotation.z,
           rw: rotation.w,
           speed: currentSpeed,
-          isReversing
+          isReversing,
+          isBoosting
         });
       }
 
@@ -178,6 +180,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
 
         {/* 3D FLOATING CALLSIGN BADGE & WAYPOINT ARROW */}
         <group position={[0, 2.0, 0]}>
+          {myId && <EmoteBubble id={myId} />}
           {/* Waypoint Arrow */}
           <group ref={waypointArrowRef} position={[0, 0, 0]}>
             <mesh position={[0, 0, -0.6]} rotation={[-Math.PI / 2, 0, 0]}>

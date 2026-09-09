@@ -64,6 +64,10 @@ export default class RaceServer implements Party.Server {
           this.room.broadcast(JSON.stringify(msg));
         }
       }
+      else if (data.type === 'EMOTE') {
+        const msg: ServerMessage = { type: 'PLAYER_EMOTE', id: sender.id, emoteIndex: data.emoteIndex };
+        this.room.broadcast(JSON.stringify(msg));
+      }
     } catch (err) {
       console.error("Invalid message received:", message);
     }

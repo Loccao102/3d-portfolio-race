@@ -7,14 +7,21 @@ export interface RemotePlayer extends PlayerMetadata {
   lastUpdate: number;
 }
 
+export interface EmoteEvent {
+  emoteIndex: number;
+  timestamp: number;
+}
+
 interface NetworkState {
   socket: PartySocket | null;
   isConnected: boolean;
   remotePlayers: Record<string, RemotePlayer>;
   myId: string | null;
+  activeEmotes: Record<string, EmoteEvent>;
   connect: (metadata: Omit<PlayerMetadata, 'id'>) => void;
   disconnect: () => void;
   sendMove: (pose: PlayerPose) => void;
+  sendEmote: (emoteIndex: number) => void;
 }
 
 export const useNetworkStore = create<NetworkState>((set, get) => ({
@@ -22,12 +29,13 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
   isConnected: false,
   remotePlayers: {},
   myId: null,
+  activeEmotes: {},
 
   connect: (metadata) => {
     if (get().socket) return;
 
     // Use default PartyKit local port in dev (1999) or env variable for production
-    const host = process.env.NEXT_PUBLIC_PARTYKIT_HOST || 'localhost:1999';
+    const host = process.env.PARTYKIT_HOST || 'localhost:1999';
     
     const socket = new PartySocket({
       host,
@@ -83,10 +91,19 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
           });
         }
       }
+      else if (data.type === 'PLAYER_EMOTE') {
+        const { activeEmotes } = get();
+        set({
+          activeEmotes: {
+            ...activeEmotes,
+            [data.id]: { emoteIndex: data.emoteIndex, timestamp: Date.now() }
+          }
+        });
+      }
     });
 
     socket.addEventListener('close', () => {
-      set({ isConnected: false, remotePlayers: {}, socket: null, myId: null });
+      set({ isConnected: false, remotePlayers: {}, socket: null, myId: null, activeEmotes: {} });
     });
 
     set({ socket });
@@ -97,7 +114,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
     if (socket) {
       socket.send(JSON.stringify({ type: 'LEAVE' }));
       socket.close();
-      set({ socket: null, isConnected: false, remotePlayers: {}, myId: null });
+      set({ socket: null, isConnected: false, remotePlayers: {}, myId: null, activeEmotes: {} });
     }
   },
 
@@ -105,6 +122,19 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
     const { socket, isConnected } = get();
     if (socket && isConnected) {
       socket.send(JSON.stringify({ type: 'MOVE', pose }));
+    }
+  },
+
+  sendEmote: (emoteIndex) => {
+    const { socket, isConnected, myId, activeEmotes } = get();
+    if (socket && isConnected && myId) {
+      socket.send(JSON.stringify({ type: 'EMOTE', emoteIndex }));
+      set({
+        activeEmotes: {
+          ...activeEmotes,
+          [myId]: { emoteIndex, timestamp: Date.now() }
+        }
+      });
     }
   }
 }));

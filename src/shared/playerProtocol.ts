@@ -8,6 +8,7 @@ export interface PlayerPose {
   rw: number;
   speed: number;
   isReversing: boolean;
+  isBoosting: boolean;
 }
 
 export interface PlayerMetadata {
@@ -20,11 +21,13 @@ export interface PlayerMetadata {
 export type ClientMessage =
   | { type: 'JOIN'; metadata: PlayerMetadata }
   | { type: 'MOVE'; pose: PlayerPose }
-  | { type: 'LEAVE' };
+  | { type: 'LEAVE' }
+  | { type: 'EMOTE'; emoteIndex: number };
 
 export type ServerMessage =
   | { type: 'SYNC'; players: Record<string, PlayerMetadata & { pose?: PlayerPose }> }
   | { type: 'PLAYER_JOINED'; id: string; metadata: PlayerMetadata }
   | { type: 'PLAYER_LEFT'; id: string }
-  | { type: 'PLAYER_MOVED'; id: string; pose: PlayerPose };
+  | { type: 'PLAYER_MOVED'; id: string; pose: PlayerPose }
+  | { type: 'PLAYER_EMOTE'; id: string; emoteIndex: number };
 
