@@ -27,7 +27,7 @@ export const Ground: React.FC = () => {
       {/* 2. Expanded Floating Diorama Island Base */}
       <group position={[0, -0.01, -5]}>
         {/* Top Surface (Daylight vs Dark Tech vs Cyberpunk Night) */}
-        <mesh receiveShadow position={[0, 0, 0]}>
+        <mesh receiveShadow position={[0, -0.3, 0]}>
           <boxGeometry args={[186, 0.6, 246]} />
           <meshStandardMaterial
             color={topColor}
@@ -48,14 +48,14 @@ export const Ground: React.FC = () => {
 
         {/* Luminous Island Perimeter Rim Strip */}
         {[-93.1, 93.1].map((x, i) => (
-          <mesh key={`rim-x-${i}`} position={[x, 0.22, 0]}>
-            <boxGeometry args={[0.1, 0.18, 246.2]} />
+          <mesh key={`rim-x-${i}`} position={[x, 0.04, 0]}>
+            <boxGeometry args={[0.1, 0.08, 246.2]} />
             <meshBasicMaterial color={rimColor} />
           </mesh>
         ))}
         {[-123.1, 123.1].map((z, i) => (
-          <mesh key={`rim-z-${i}`} position={[0, 0.22, z]}>
-            <boxGeometry args={[186.2, 0.18, 0.1]} />
+          <mesh key={`rim-z-${i}`} position={[0, 0.04, z]}>
+            <boxGeometry args={[186.2, 0.08, 0.1]} />
             <meshBasicMaterial color={rimColor} />
           </mesh>
         ))}

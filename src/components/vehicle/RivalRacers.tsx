@@ -2,23 +2,27 @@ import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { INITIAL_RIVALS, RivalPilot } from '../../data/playerProfile';
+import { INITIAL_RIVALS } from '../../data/playerProfile';
 import { FerrariModel } from './FerrariModel';
 
-// Outer Grand Speed Circuit Waypoints forming a continuous closed loop
+// Outer Grand Speed Circuit Waypoints forming a continuous closed loop along track centerlines
 const CIRCUIT_POINTS: [number, number][] = [
-  [0, -95],   // Start / Finish Line
-  [45, -90],  // Turn 1 Entry
-  [75, -60],  // North-East Sweeper
-  [80, 0],    // East Checkpoint 1
-  [75, 60],   // South-East Curve
-  [40, 85],   // Turn 2
-  [0, 85],    // South Hairpin Checkpoint 2
-  [-40, 85],  // Turn 3
-  [-75, 60],  // South-West Curve
-  [-80, 0],   // West Checkpoint 3 (High-Speed Straight)
-  [-75, -60], // North-West Curve
-  [-45, -90], // Final Corner
+  [0, -95],    // Start / Finish Line
+  [55, -95],   // Turn 1 Approach
+  [75, -90],   // Turn 1 Apex
+  [80, -75],   // Turn 1 Exit into East Straight
+  [80, 0],     // East Checkpoint 1
+  [80, 65],    // Turn 2 Approach
+  [75, 80],    // Turn 2 Apex
+  [55, 85],    // Turn 2 Exit into South Straight
+  [0, 85],     // South Hairpin Checkpoint 2
+  [-55, 85],   // Turn 3 Approach
+  [-75, 80],   // Turn 3 Apex
+  [-80, 65],   // Turn 3 Exit into West Straight
+  [-80, 0],    // West Checkpoint 3
+  [-80, -75],  // Final Turn Approach
+  [-75, -90],  // Final Turn Apex
+  [-55, -95],  // Final Straight Sprint
 ];
 
 export const RivalRacers: React.FC = () => {
@@ -107,4 +111,3 @@ export const RivalRacers: React.FC = () => {
     </group>
   );
 };
-

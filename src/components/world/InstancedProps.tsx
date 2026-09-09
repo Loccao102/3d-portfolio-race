@@ -1,5 +1,4 @@
 import React, { useMemo, useRef, useLayoutEffect } from 'react';
-import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
 export const InstancedProps: React.FC = () => {
@@ -83,11 +82,9 @@ export const InstancedProps: React.FC = () => {
 
     if (streetLampPolesRef.current) {
       streetLampPolesRef.current.instanceMatrix.needsUpdate = true;
-      streetLampPolesRef.current.computeBoundingSphere();
     }
     if (streetLampHeadsRef.current) {
       streetLampHeadsRef.current.instanceMatrix.needsUpdate = true;
-      streetLampHeadsRef.current.computeBoundingSphere();
     }
 
     // Barriers
@@ -101,7 +98,6 @@ export const InstancedProps: React.FC = () => {
 
     if (barriersRef.current) {
       barriersRef.current.instanceMatrix.needsUpdate = true;
-      barriersRef.current.computeBoundingSphere();
     }
 
     // Trees
@@ -121,41 +117,19 @@ export const InstancedProps: React.FC = () => {
 
     if (treesTrunkRef.current) {
       treesTrunkRef.current.instanceMatrix.needsUpdate = true;
-      treesTrunkRef.current.computeBoundingSphere();
     }
     if (treesFoliageRef.current) {
       treesFoliageRef.current.instanceMatrix.needsUpdate = true;
-      treesFoliageRef.current.computeBoundingSphere();
     }
   }, [lampPositions, barrierPositions, treePositions]);
 
   return (
     <group>
-      {/* Physics proxies mirror the visible instanced transforms. Lights and
-          foliage stay visual; poles, barriers, and trunks are solid. */}
-      <RigidBody type="fixed" colliders={false}>
-        {lampPositions.map(([x, , z], index) => (
-          <CylinderCollider key={`lamp-collider-${index}`} args={[2, 0.12]} position={[x, 2, z]} />
-        ))}
-        {barrierPositions.map(([x, , z, rotY], index) => (
-          <CuboidCollider
-            key={`barrier-collider-${index}`}
-            args={[1.1, 0.45, 0.14]}
-            position={[x, 0.45, z]}
-            rotation={[0, rotY, 0]}
-          />
-        ))}
-        {treePositions.map(([x, , z], index) => (
-          <CylinderCollider key={`tree-collider-${index}`} args={[0.9, 0.38]} position={[x, 0.9, z]} />
-        ))}
-      </RigidBody>
-
       {/* 1. Street Lamp Carbon Poles */}
       <instancedMesh
         ref={streetLampPolesRef}
         args={[undefined, undefined, lampPositions.length]}
         castShadow
-        frustumCulled={false}
       >
         <cylinderGeometry args={[0.08, 0.12, 4.0, 8]} />
         <meshStandardMaterial color="#1e293b" metalness={0.85} roughness={0.2} />
@@ -165,7 +139,6 @@ export const InstancedProps: React.FC = () => {
       <instancedMesh
         ref={streetLampHeadsRef}
         args={[undefined, undefined, lampPositions.length]}
-        frustumCulled={false}
       >
         <boxGeometry args={[0.6, 0.16, 0.35]} />
         <meshStandardMaterial
@@ -181,7 +154,6 @@ export const InstancedProps: React.FC = () => {
         ref={barriersRef}
         args={[undefined, undefined, barrierPositions.length]}
         castShadow
-        frustumCulled={false}
       >
         <boxGeometry args={[2.2, 0.75, 0.28]} />
         <meshStandardMaterial color="#334155" metalness={0.7} roughness={0.3} />
@@ -192,7 +164,6 @@ export const InstancedProps: React.FC = () => {
         ref={treesTrunkRef}
         args={[undefined, undefined, treePositions.length]}
         castShadow
-        frustumCulled={false}
       >
         <cylinderGeometry args={[0.2, 0.38, 1.8, 6]} />
         <meshStandardMaterial color="#1e293b" roughness={0.8} />
@@ -203,7 +174,6 @@ export const InstancedProps: React.FC = () => {
         ref={treesFoliageRef}
         args={[undefined, undefined, treePositions.length]}
         castShadow
-        frustumCulled={false}
       >
         <dodecahedronGeometry args={[1.5, 0]} />
         <meshStandardMaterial

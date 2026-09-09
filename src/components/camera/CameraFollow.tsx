@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
-import { useGameStore } from '../../stores/useGameStore';
 
 // Static scratch vectors to eliminate memory thrashing in render loop
 const scratchVehiclePos = new THREE.Vector3();
@@ -15,27 +14,18 @@ interface CameraFollowProps {
   targetRef: React.RefObject<RapierRigidBody | null>;
 }
 
-const FOV_NORMAL = 46;
-const FOV_BOOST = 60;
-
 export const CameraFollow: React.FC<CameraFollowProps> = ({ targetRef }) => {
   const { camera } = useThree();
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
-  const isBoosting = useGameStore((state) => state.isBoosting);
 
-  // Follow offsets: further back and higher to see surrounding city
-  const ELEVATION = 16.0;
-  const DISTANCE = 22.0;
-  const POSITION_SMOOTHING = 7.5;
-  const LOOKAT_SMOOTHING = 9.0;
-  const FOV_SMOOTHING = 6.0;
+  // Isometric follow offsets: Behind and elevated
+  const ELEVATION = 14.0;
+  const DISTANCE = 18.0;
+  const POSITION_LERP = 0.08;
+  const LOOKAT_LERP = 0.12;
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     if (!targetRef.current) return;
-    const frameDelta = Math.min(delta, 0.1);
-    const positionAlpha = 1 - Math.exp(-POSITION_SMOOTHING * frameDelta);
-    const lookAtAlpha = 1 - Math.exp(-LOOKAT_SMOOTHING * frameDelta);
-    const fovAlpha = 1 - Math.exp(-FOV_SMOOTHING * frameDelta);
 
     // Read current translation from Rapier
     const translation = targetRef.current.translation();
@@ -61,18 +51,11 @@ export const CameraFollow: React.FC<CameraFollowProps> = ({ targetRef }) => {
     );
 
     // Smooth spring interpolation
-    camera.position.lerp(scratchDesiredPos, positionAlpha);
-    currentLookAt.current.lerp(scratchDesiredLookAt, lookAtAlpha);
+    camera.position.lerp(scratchDesiredPos, POSITION_LERP);
+    currentLookAt.current.lerp(scratchDesiredLookAt, LOOKAT_LERP);
     camera.lookAt(currentLookAt.current);
-
-    // FOV Speed Warp during Nitro Boost (42deg normal → 58deg boost)
-    const targetFov = isBoosting ? FOV_BOOST : FOV_NORMAL;
-    const perspCamera = camera as THREE.PerspectiveCamera;
-    if (Math.abs(perspCamera.fov - targetFov) > 0.1) {
-      perspCamera.fov = THREE.MathUtils.lerp(perspCamera.fov, targetFov, fovAlpha);
-      perspCamera.updateProjectionMatrix();
-    }
   });
 
   return null;
 };
+

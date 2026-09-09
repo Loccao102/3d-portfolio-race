@@ -1,12 +1,11 @@
 import React, { useRef, Suspense } from 'react';
 import { Physics, RapierRigidBody } from '@react-three/rapier';
 import { Vehicle } from '../vehicle/Vehicle';
-import { RemotePlayers } from '../vehicle/RemotePlayers';
 import { RivalRacers } from '../vehicle/RivalRacers';
 import { CameraFollow } from '../camera/CameraFollow';
 import { Ground } from '../world/Ground';
 import { InstancedProps } from '../world/InstancedProps';
-import { CityBuildings, CityBuildingColliders } from '../world/CityBuildings';
+import { CityBuildings } from '../world/CityBuildings';
 import { AboutDistrict } from '../world/districts/AboutDistrict';
 import { TechDistrict } from '../world/districts/TechDistrict';
 import { ProjectGarage } from '../world/districts/ProjectGarage';
@@ -100,19 +99,16 @@ export const Experience: React.FC = () => {
         <CityBuildings />
       </Suspense>
 
-      {/* Physics World Simulation — isolated in own Suspense so Rapier WASM
-          initialization never causes the outer SceneCanvas Suspense to hide
-          the entire scene (that's why everything went black after first frame) */}
+      {/* Physics World Simulation — isolated in own Suspense */}
       <Suspense fallback={null}>
-        <Physics gravity={[0, -26, 0]} timeStep={1 / 60} interpolate>
+        <Physics gravity={[0, -26, 0]} timeStep="vary">
           {/* World Base Ground & Roads & Grand Speed Circuit */}
           <Ground />
 
-          {/* Real 3D Low-Poly City Buildings & Urban Plazas Colliders */}
-          <CityBuildingColliders />
+          {/* Instanced City Props (Lamps, Barriers, Trees) — pure geometry, no async */}
           <InstancedProps />
 
-          {/* Autonomous AI Rival Racers on the Speed Circuit */}
+          {/* Autonomous AI Rival Racers competing on the Speed Circuit */}
           <RivalRacers />
 
           {/* The 5 Thematic Architectural Districts */}
@@ -122,11 +118,8 @@ export const Experience: React.FC = () => {
           <ExperimentLab />
           <ContactStation />
 
-          {/* Remote Multiplayer Opponents */}
-          <RemotePlayers />
-
           {/* Customized Playable Cyber-Roadster */}
-          <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 4]} />
+          <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 14]} />
         </Physics>
       </Suspense>
 
@@ -135,4 +128,3 @@ export const Experience: React.FC = () => {
     </>
   );
 };
-

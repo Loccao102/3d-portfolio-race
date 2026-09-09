@@ -10,10 +10,8 @@ import {
 import * as THREE from 'three';
 import { useVehicleControls } from '../../hooks/useVehicleControls';
 import { useGameStore, MILESTONE_WAYPOINTS } from '../../stores/useGameStore';
-import { useNetworkStore } from '../../stores/useNetworkStore';
 import { VehicleEffects } from './VehicleEffects';
 import { FerrariModel } from './FerrariModel';
-import { EmoteBubble } from './EmoteBubble';
 import { ContactShadows } from '@react-three/drei';
 import { sound } from '../../lib/soundEngine';
 import {
@@ -30,7 +28,7 @@ interface VehicleProps {
 }
 
 export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
-  ({ initialPosition = [0, 1.2, 0] }, forwardedRef) => {
+  ({ initialPosition = [0, 1.2, 14] }, forwardedRef) => {
     const internalRef = useRef<RapierRigidBody>(null);
     const chassisMeshRef = useRef<THREE.Group>(null);
     const thrusterRef = useRef<THREE.Mesh>(null);
@@ -43,8 +41,6 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const setIsBoosting = useGameStore((state) => state.setIsBoosting);
     const targetWaypointId = useGameStore((state) => state.targetWaypoint);
     const tickRaceTimer = useGameStore((state) => state.tickRaceTimer);
-    const sendMove = useNetworkStore((state) => state.sendMove);
-    const myId = useNetworkStore((state) => state.myId);
 
     // Controller state is advanced by Rapier's fixed-step callbacks. The
     // visual model reads these refs each render frame without driving physics.
@@ -88,22 +84,9 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       if (posSyncCounter.current >= 4) {
         posSyncCounter.current = 0;
         const translation = body.translation();
-        const rotation = body.rotation();
         setVehiclePos({ x: translation.x, z: translation.z, heading: state.heading });
         setVehicleSpeed(Math.max(0, Math.round(Math.abs(currentSpeed) * 3.6)));
         setIsBoosting(isBoosting);
-        sendMove({
-          x: translation.x,
-          y: translation.y,
-          z: translation.z,
-          rx: rotation.x,
-          ry: rotation.y,
-          rz: rotation.z,
-          rw: rotation.w,
-          speed: currentSpeed,
-          isReversing,
-          isBoosting
-        });
       }
 
       if (
@@ -171,16 +154,10 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         userData={{ type: LOCAL_VEHICLE_TYPE, localPlayer: true }}
       >
         {/* Chassis Box Physics Collider */}
-        <CuboidCollider 
-          args={[0.85, 0.35, 1.5]} 
-          position={[0, 0.45, 0]} 
-          friction={0.0} 
-          restitution={0.4} 
-        />
+        <CuboidCollider args={[0.85, 0.35, 1.5]} position={[0, 0.45, 0]} friction={0.0} />
 
         {/* 3D FLOATING CALLSIGN BADGE & WAYPOINT ARROW */}
         <group position={[0, 2.0, 0]}>
-          {myId && <EmoteBubble id={myId} />}
           {/* Waypoint Arrow */}
           <group ref={waypointArrowRef} position={[0, 0, 0]}>
             <mesh position={[0, 0, -0.6]} rotation={[-Math.PI / 2, 0, 0]}>

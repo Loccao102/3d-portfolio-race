@@ -1,8 +1,6 @@
 import React, { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
-import { CITY_BUILDING_COLLIDERS, FOUNTAIN_COLLIDERS } from './worldPlacements';
 
 interface ModelInstanceProps {
   url: string;
@@ -11,7 +9,7 @@ interface ModelInstanceProps {
   scale?: [number, number, number] | number;
 }
 
-const ModelInstanceContent: React.FC<ModelInstanceProps> = ({
+const ModelInstance: React.FC<ModelInstanceProps> = ({
   url,
   position,
   rotation = [0, 0, 0],
@@ -22,14 +20,8 @@ const ModelInstanceContent: React.FC<ModelInstanceProps> = ({
     const c = scene.clone(true);
     c.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        mesh.frustumCulled = false;
-        // Force bounding sphere so frustum culling (if re-enabled) works correctly
-        if (mesh.geometry) {
-          mesh.geometry.computeBoundingSphere();
-        }
+        child.castShadow = true;
+        child.receiveShadow = true;
       }
     });
     return c;
@@ -44,14 +36,6 @@ const ModelInstanceContent: React.FC<ModelInstanceProps> = ({
       rotation={rotation}
       scale={scaleArray}
     />
-  );
-};
-
-const ModelInstance: React.FC<ModelInstanceProps> = (props) => {
-  return (
-    <React.Suspense fallback={null}>
-      <ModelInstanceContent {...props} />
-    </React.Suspense>
   );
 };
 
@@ -204,33 +188,6 @@ export const CityBuildings: React.FC = () => {
         scale={[8, 8, 8]}
       />
     </group>
-  );
-};
-
-/** Physics-only proxies mounted inside the Physics provider by Experience. */
-export const CityBuildingColliders: React.FC = () => {
-  return (
-    <>
-      <RigidBody type="fixed" colliders={false}>
-        {CITY_BUILDING_COLLIDERS.map((collider, index) => (
-          <CuboidCollider
-            key={`city-building-collider-${index}`}
-            args={collider.halfExtents}
-            position={collider.position}
-            rotation={[0, collider.rotationY ?? 0, 0]}
-          />
-        ))}
-      </RigidBody>
-      <RigidBody type="fixed" colliders={false}>
-        {FOUNTAIN_COLLIDERS.map((collider, index) => (
-          <CylinderCollider
-            key={`fountain-collider-${index}`}
-            args={[collider.halfHeight, collider.radius]}
-            position={collider.position}
-          />
-        ))}
-      </RigidBody>
-    </>
   );
 };
 
