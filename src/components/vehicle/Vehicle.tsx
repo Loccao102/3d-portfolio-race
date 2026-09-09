@@ -32,6 +32,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     // Arcade Kinematic States
     const speedRef = useRef(0);
     const headingRef = useRef(0);
+    const yawRateRef = useRef(0);
     const steerAngleRef = useRef(0);
     const posSyncCounter = useRef(0);
 
@@ -49,8 +50,6 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const BASE_ACCEL = 25.0;
     const BOOST_ACCEL = 48.0;     // Instant acceleration burst during Nitro
     const REVERSE_ACCEL = 12.0;   // Progressive, gentle reverse acceleration
-    const FORWARD_TURN_SPEED = 2.8;
-    const REVERSE_TURN_SPEED = 2.2; // Smooth caster steering in reverse
 
     useFrame((_, delta) => {
       const body = (forwardedRef as React.RefObject<RapierRigidBody | null>)?.current || internalRef.current;
@@ -84,46 +83,68 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         speedRef.current *= Math.pow(0.015, clampedDelta);
       }
 
+      // 3. Cornering Drag & Tire Scrub (Loss of speed when turning)
+      // When tires turn, lateral tire scrub naturally dissipates speed
+      const turnAmount = Math.abs(controls.turn);
+      if (turnAmount > 0.05 && Math.abs(speedRef.current) > 1.0) {
+        const scrubIntensity = isBoosting ? 8.0 : 13.5;
+        const corneringDecel = turnAmount * scrubIntensity * Math.min(1.0, Math.abs(speedRef.current) / 10.0);
+        const sign = Math.sign(speedRef.current);
+        const newSpeedMag = Math.max(0, Math.abs(speedRef.current) - corneringDecel * clampedDelta);
+        speedRef.current = sign * newSpeedMag;
+      }
+
       const currentSpeed = speedRef.current;
       const isReversing = currentSpeed < -0.1 || controls.forward < 0;
 
-      // 3. Responsive Steering Mechanics (Works from standstill, low speed & high speed)
-      if (controls.turn !== 0) {
-        if (currentSpeed >= 0) {
-          // Moving forward: minimum authority 0.45 ensures prompt steering even from standstill
-          const steerAuthority = Math.min(1.0, Math.max(0.45, currentSpeed / 2.5));
-          headingRef.current += -controls.turn * FORWARD_TURN_SPEED * steerAuthority * clampedDelta;
-        } else {
-          // Moving in reverse: natural reverse turning physics
-          const reverseAuthority = Math.min(1.0, Math.max(0.45, Math.abs(currentSpeed) / 1.5));
-          headingRef.current += controls.turn * REVERSE_TURN_SPEED * reverseAuthority * clampedDelta;
-        }
-      }
+      // 4. Smooth, Progressive Steering Mechanics (Eliminates snappy / twitchy instant pivots)
+      // Speed-sensitive steering: at higher speeds, steering rate is lower for stability (~1.15 rad/s);
+      // at lower speeds, steering rate is higher for nimble parking/maneuvering (~1.85 rad/s).
+      const speedRatio = Math.min(1.0, Math.abs(currentSpeed) / 24.0);
+      const dynamicTurnSpeed = THREE.MathUtils.lerp(1.85, 1.15, speedRatio);
+      const steerAuthority = currentSpeed >= 0
+        ? Math.min(1.0, Math.max(0.4, currentSpeed / 3.0))
+        : Math.min(1.0, Math.max(0.4, Math.abs(currentSpeed) / 2.0));
+
+      const targetYawRate = (currentSpeed >= 0 ? -controls.turn : controls.turn) * dynamicTurnSpeed * steerAuthority;
+
+      // Smooth yaw rate interpolation gives vehicle rotation mass, weight, and inertia
+      yawRateRef.current = THREE.MathUtils.lerp(yawRateRef.current, targetYawRate, clampedDelta * 12.0);
+      headingRef.current += yawRateRef.current * clampedDelta;
 
       // Front wheel steer angle calculation
-      const targetSteerAngle = -controls.turn * 0.45;
-      steerAngleRef.current = THREE.MathUtils.lerp(steerAngleRef.current, targetSteerAngle, 0.25);
+      const targetSteerAngle = -controls.turn * 0.42;
+      steerAngleRef.current = THREE.MathUtils.lerp(steerAngleRef.current, targetSteerAngle, 0.2);
 
       const heading = headingRef.current;
 
-      // 4. Compute Velocity Vector & Apply to Rapier
-      const targetVx = -Math.sin(heading) * currentSpeed;
-      const targetVz = -Math.cos(heading) * currentSpeed;
+      // 5. Compute Lateral Momentum / Drift & Forward Velocity
+      const fwdX = -Math.sin(heading);
+      const fwdZ = -Math.cos(heading);
+      const rightX = Math.cos(heading);
+      const rightZ = -Math.sin(heading);
 
       const currentLinvel = body.linvel();
+      const currentLateralSpeed = currentLinvel.x * rightX + currentLinvel.z * rightZ;
+      // Lateral grip damps sideways sliding smoothly (creates authentic sportscar drift feel)
+      const lateralGrip = 9.0;
+      const newLateralSpeed = currentLateralSpeed * Math.exp(-lateralGrip * clampedDelta);
+
+      const targetVx = fwdX * currentSpeed + rightX * newLateralSpeed;
+      const targetVz = fwdZ * currentSpeed + rightZ * newLateralSpeed;
+
       body.setLinvel({ x: targetVx, y: Math.max(-20, currentLinvel.y), z: targetVz }, true);
 
       // Direct, responsive yaw heading rotation
       const halfAngle = heading / 2;
       body.setRotation({ x: 0, y: Math.sin(halfAngle), z: 0, w: Math.cos(halfAngle) }, true);
 
-      // 5. Sound Engine Telemetry
+      // 6. Sound Engine Telemetry
       sound.updateEngineSpeed(Math.abs(currentSpeed));
 
-      // 6. Visual Chassis Roll & Pitch Animation
+      // 7. Visual Chassis Roll & Pitch Animation
       if (chassisMeshRef.current) {
-        const speedRatio = Math.min(1.0, Math.abs(currentSpeed) / 10.0);
-        const targetRoll = -controls.turn * speedRatio * (currentSpeed >= 0 ? 0.14 : -0.1);
+        const targetRoll = -yawRateRef.current * 0.08 * (currentSpeed >= 0 ? 1 : -1);
         const targetPitch = currentSpeed >= 0 ? controls.forward * 0.05 : -0.04;
 
         chassisMeshRef.current.rotation.z = THREE.MathUtils.lerp(
@@ -138,7 +159,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         );
       }
 
-      // 7. Visual Thruster Flame Intensity (Amplified during Nitro Boost)
+      // 8. Visual Thruster Flame Intensity (Amplified during Nitro Boost)
       if (thrusterRef.current) {
         const isDrivingForward = controls.forward > 0 && currentSpeed > 0;
         const targetScale = isBoosting
@@ -149,7 +170,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         thrusterRef.current.scale.set(isBoosting ? 1.4 : 1, isBoosting ? 1.4 : 1, targetScale);
       }
 
-      // 8. Sync Vehicle Coordinates to MiniMap & Speedometer Store (every 4 frames)
+      // 9. Sync Vehicle Coordinates to MiniMap & Speedometer Store (every 4 frames)
       posSyncCounter.current += 1;
       if (posSyncCounter.current >= 4) {
         posSyncCounter.current = 0;
@@ -160,7 +181,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         setIsBoosting(isBoosting);
       }
 
-      // 9. 3D Waypoint Compass Arrow pointing towards selected milestone
+      // 10. 3D Waypoint Compass Arrow pointing towards selected milestone
       if (waypointArrowRef.current) {
         const currentPos = body.translation();
         const targetWP = MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypointId) || MILESTONE_WAYPOINTS[0];
@@ -172,7 +193,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         waypointArrowRef.current.rotation.y = -Math.atan2(localRight, localForward);
       }
 
-      // 10. State Sync for Lighting & Particles
+      // 11. State Sync for Lighting & Particles
       if (
         Math.abs(vehicleFX.speed - Math.abs(currentSpeed)) > 0.8 ||
         (controls.forward > 0) !== vehicleFX.isAccelerating ||
