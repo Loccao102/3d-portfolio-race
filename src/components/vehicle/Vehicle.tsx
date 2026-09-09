@@ -169,7 +169,12 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         userData={{ type: LOCAL_VEHICLE_TYPE, localPlayer: true }}
       >
         {/* Chassis Box Physics Collider */}
-        <CuboidCollider args={[0.85, 0.35, 1.5]} position={[0, 0.45, 0]} friction={0.0} />
+        <CuboidCollider 
+          args={[0.85, 0.35, 1.5]} 
+          position={[0, 0.45, 0]} 
+          friction={0.0} 
+          restitution={0.4} 
+        />
 
         {/* 3D FLOATING CALLSIGN BADGE & WAYPOINT ARROW */}
         <group position={[0, 2.0, 0]}>

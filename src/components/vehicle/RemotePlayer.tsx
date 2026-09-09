@@ -63,7 +63,12 @@ export const RemotePlayer: React.FC<Props> = ({ id, player }) => {
       position={[0, -100, 0]} // Initial spawn offscreen until first pose arrives
       userData={{ type: 'remote_vehicle', id }}
     >
-      <CuboidCollider args={[0.85, 0.35, 1.5]} position={[0, 0.45, 0]} friction={0.0} />
+      <CuboidCollider 
+        args={[0.85, 0.35, 1.5]} 
+        position={[0, 0.45, 0]} 
+        friction={0.0} 
+        restitution={0.4}
+      />
 
       {/* Floating Name Tag */}
       <Text
@@ -101,3 +106,4 @@ export const RemotePlayer: React.FC<Props> = ({ id, player }) => {
     </RigidBody>
   );
 };
+
