@@ -19,9 +19,10 @@ export const Ground: React.FC = () => {
 
   return (
     <group>
-      {/* 1. Solid Physics Floor (Expanded to 180m x 240m) */}
+      {/* 1. Solid Physics Floor (Expanded to 180m x 240m, thick to prevent tunneling) */}
       <RigidBody type="fixed" friction={0.4}>
-        <CuboidCollider args={[95, 0.5, 125]} position={[0, -0.5, -5]} />
+        {/* Half-height of 10.0 makes the collider 20m thick. Top surface remains at y=0 */}
+        <CuboidCollider args={[95, 10.0, 125]} position={[0, -10.0, -5]} />
       </RigidBody>
 
       {/* 2. Expanded Floating Diorama Island Base */}

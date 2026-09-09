@@ -200,6 +200,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         }}
         type="dynamic"
         colliders={false}
+        ccd={true}
         position={initialPosition}
         enabledRotations={[false, true, false]}
         linearDamping={0.1}
