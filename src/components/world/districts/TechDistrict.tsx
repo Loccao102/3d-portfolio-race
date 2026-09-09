@@ -4,8 +4,9 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { MilestoneZone } from '../../milestones/MilestoneZone';
 import { TechReactorModel } from './TechReactorModel';
+import { DistrictProps } from './AboutDistrict';
 
-export const TechDistrict: React.FC = () => {
+export const TechDistrict: React.FC<DistrictProps> = ({ position = [0, 0, 0], rotation = [0, 0, 0] }) => {
   const gyro1Ref = useRef<THREE.Group>(null);
   const gyro2Ref = useRef<THREE.Group>(null);
   const coreLightRef = useRef<THREE.PointLight>(null);
@@ -14,23 +15,24 @@ export const TechDistrict: React.FC = () => {
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (gyro1Ref.current) {
-      gyro1Ref.current.rotation.y = t * 0.9;
-      gyro1Ref.current.rotation.x = Math.sin(t * 0.6) * 0.2;
+      gyro1Ref.current.rotation.x = t * 1.5;
+      gyro1Ref.current.rotation.y = t * 0.8;
     }
     if (gyro2Ref.current) {
-      gyro2Ref.current.rotation.x = t * -0.7;
-      gyro2Ref.current.rotation.z = Math.cos(t * 0.5) * 0.2;
+      gyro2Ref.current.rotation.y = -t * 2.0;
+      gyro2Ref.current.rotation.z = t * 1.2;
     }
     if (coreLightRef.current) {
-      coreLightRef.current.intensity = 2.5 + Math.sin(t * 3.5) * 1.0;
+      coreLightRef.current.intensity = 2 + Math.sin(t * 5) * 1.0;
     }
     if (dataLightRef.current) {
-      dataLightRef.current.position.y = 2.2 + Math.sin(t * 4.0) * 1.5;
+      dataLightRef.current.position.y = -0.5 + (t % 1) * 3.0;
+      dataLightRef.current.scale.setLength(1.0 - (t % 1));
     }
   });
 
   return (
-    <group position={[0, 0, -38]}>
+    <group position={position} rotation={rotation}>
       {/* Interactive Milestone Trigger Zone */}
       <MilestoneZone
         id="tech"

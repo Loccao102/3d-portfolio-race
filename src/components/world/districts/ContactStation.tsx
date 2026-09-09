@@ -3,8 +3,9 @@ import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { MilestoneZone } from '../../milestones/MilestoneZone';
+import { DistrictProps } from './AboutDistrict';
 
-export const ContactStation: React.FC = () => {
+export const ContactStation: React.FC<DistrictProps> = ({ position = [0, 0, 0], rotation = [0, 0, 0] }) => {
   const dishRef = useRef<THREE.Group>(null);
   const skyBeamRef = useRef<THREE.Mesh>(null);
   const beaconLightRef = useRef<THREE.Mesh>(null);
@@ -25,7 +26,7 @@ export const ContactStation: React.FC = () => {
   });
 
   return (
-    <group position={[0, 0, -76]}>
+    <group position={position} rotation={rotation}>
       {/* Interactive Milestone Trigger Zone */}
       <MilestoneZone
         id="contact"

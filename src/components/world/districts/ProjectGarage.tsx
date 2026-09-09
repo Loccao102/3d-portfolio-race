@@ -6,8 +6,9 @@ import { useGameStore } from '../../../stores/useGameStore';
 import { projectsData } from '../../../data/projects';
 import { isLocalVehicleObject } from '../../vehicle/localPhysics';
 import { PROJECT_GARAGE_WALL_COLLIDERS } from '../worldPlacements';
+import { DistrictProps } from './AboutDistrict';
 
-export const ProjectGarage: React.FC = () => {
+export const ProjectGarage: React.FC<DistrictProps> = ({ position = [0, 0, 0], rotation = [0, 0, 0] }) => {
   const setActiveMilestone = useGameStore((state) => state.setActiveMilestone);
   const setSelectedProject = useGameStore((state) => state.setSelectedProject);
   const markMilestoneVisited = useGameStore((state) => state.markMilestoneVisited);
@@ -25,7 +26,7 @@ export const ProjectGarage: React.FC = () => {
   });
 
   return (
-    <group position={[42, 0, 0]}>
+    <group position={position} rotation={rotation}>
       {/* 1. Main Hangar Raised Platform */}
       <RigidBody type="fixed">
         <CuboidCollider args={[8, 0.25, 17]} position={[4, 0.25, 0]} />

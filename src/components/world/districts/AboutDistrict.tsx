@@ -4,7 +4,12 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { MilestoneZone } from '../../milestones/MilestoneZone';
 
-export const AboutDistrict: React.FC = () => {
+export interface DistrictProps {
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+}
+
+export const AboutDistrict: React.FC<DistrictProps> = ({ position = [0, 0, 0], rotation = [0, 0, 0] }) => {
   const neonSignRef = useRef<THREE.Group>(null);
   const monitorGlowRef = useRef<THREE.Mesh>(null);
   const steamRef = useRef<THREE.Mesh>(null);
@@ -26,7 +31,7 @@ export const AboutDistrict: React.FC = () => {
   });
 
   return (
-    <group position={[0, 0, 38]}>
+    <group position={position} rotation={rotation}>
       {/* Interactive Milestone Trigger Zone */}
       <MilestoneZone
         id="about"

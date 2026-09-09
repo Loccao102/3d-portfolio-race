@@ -3,8 +3,9 @@ import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { MilestoneZone } from '../../milestones/MilestoneZone';
+import { DistrictProps } from './AboutDistrict';
 
-export const ExperimentLab: React.FC = () => {
+export const ExperimentLab: React.FC<DistrictProps> = ({ position = [0, 0, 0], rotation = [0, 0, 0] }) => {
   const orbRef = useRef<THREE.Group>(null);
   const laserRef = useRef<THREE.Mesh>(null);
 
@@ -22,7 +23,7 @@ export const ExperimentLab: React.FC = () => {
   });
 
   return (
-    <group position={[-42, 0, 0]}>
+    <group position={position} rotation={rotation}>
       {/* Interactive Milestone Trigger Zone */}
       <MilestoneZone
         id="experiments"
