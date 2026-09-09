@@ -44,8 +44,8 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
   connect: (metadata) => {
     if (get().socket) return;
 
-    // Use default PartyKit local port in dev (1999) or env variable for production
-    const host = process.env.PARTYKIT_HOST || 'localhost:1999';
+    // Use NEXT_PUBLIC_PARTYKIT_HOST in production or fallback to localhost:1999
+    const host = process.env.NEXT_PUBLIC_PARTYKIT_HOST || process.env.PARTYKIT_HOST || 'localhost:1999';
     
     const socket = new PartySocket({
       host,

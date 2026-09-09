@@ -15,6 +15,10 @@ export default class RaceServer implements Party.Server {
     // Player connected, but not officially joined yet
   }
 
+  onRequest(req: Party.Request) {
+    return new Response("RaceServer OK", { status: 200 });
+  }
+
   onClose(conn: Party.Connection) {
     if (this.players.has(conn.id)) {
       this.players.delete(conn.id);
