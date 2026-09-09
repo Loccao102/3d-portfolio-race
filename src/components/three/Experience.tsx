@@ -1,6 +1,7 @@
 import React, { useRef, Suspense } from 'react';
 import { Physics, RapierRigidBody } from '@react-three/rapier';
 import { Vehicle } from '../vehicle/Vehicle';
+import { RemotePlayers } from '../vehicle/RemotePlayers';
 import { RivalRacers } from '../vehicle/RivalRacers';
 import { CameraFollow } from '../camera/CameraFollow';
 import { Ground } from '../world/Ground';
@@ -124,6 +125,9 @@ export const Experience: React.FC = () => {
           <ProjectGarage />
           <ExperimentLab />
           <ContactStation />
+
+          {/* Remote Multiplayer Opponents */}
+          <RemotePlayers />
 
           {/* Customized Playable Cyber-Roadster */}
           <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 14]} />

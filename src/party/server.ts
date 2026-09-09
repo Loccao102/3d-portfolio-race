@@ -69,3 +69,4 @@ export default class RaceServer implements Party.Server {
     }
   }
 }
+

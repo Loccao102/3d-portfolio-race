@@ -22,7 +22,11 @@ export const OverlayUI: React.FC = () => {
     setPlayerProfile(profile);
     
     // Connect to multiplayer server
-    connect({ bodyColor: profile.bodyColor, accentColor: profile.accentColor });
+    connect({ 
+      name: profile.name,
+      bodyColor: profile.bodyColor, 
+      accentColor: profile.accentColor 
+    });
     return () => disconnect();
   }, [setPlayerProfile, connect, disconnect]);
 

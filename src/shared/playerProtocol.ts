@@ -12,6 +12,7 @@ export interface PlayerPose {
 
 export interface PlayerMetadata {
   id: string;
+  name: string;
   bodyColor: string;
   accentColor: string;
 }
@@ -26,3 +27,4 @@ export type ServerMessage =
   | { type: 'PLAYER_JOINED'; id: string; metadata: PlayerMetadata }
   | { type: 'PLAYER_LEFT'; id: string }
   | { type: 'PLAYER_MOVED'; id: string; pose: PlayerPose };
+
