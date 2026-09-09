@@ -10,6 +10,7 @@ import {
 import * as THREE from 'three';
 import { useVehicleControls } from '../../hooks/useVehicleControls';
 import { useGameStore, MILESTONE_WAYPOINTS } from '../../stores/useGameStore';
+import { useNetworkStore } from '../../stores/useNetworkStore';
 import { VehicleEffects } from './VehicleEffects';
 import { FerrariModel } from './FerrariModel';
 import { ContactShadows } from '@react-three/drei';
@@ -41,6 +42,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const setIsBoosting = useGameStore((state) => state.setIsBoosting);
     const targetWaypointId = useGameStore((state) => state.targetWaypoint);
     const tickRaceTimer = useGameStore((state) => state.tickRaceTimer);
+    const sendMove = useNetworkStore((state) => state.sendMove);
 
     // Controller state is advanced by Rapier's fixed-step callbacks. The
     // visual model reads these refs each render frame without driving physics.
@@ -84,9 +86,22 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       if (posSyncCounter.current >= 4) {
         posSyncCounter.current = 0;
         const translation = body.translation();
+        const rotation = body.rotation();
         setVehiclePos({ x: translation.x, z: translation.z, heading: state.heading });
         setVehicleSpeed(Math.max(0, Math.round(Math.abs(currentSpeed) * 3.6)));
         setIsBoosting(isBoosting);
+        
+        sendMove({
+          x: translation.x,
+          y: translation.y,
+          z: translation.z,
+          rx: rotation.x,
+          ry: rotation.y,
+          rz: rotation.z,
+          rw: rotation.w,
+          speed: currentSpeed,
+          isReversing
+        });
       }
 
       if (
