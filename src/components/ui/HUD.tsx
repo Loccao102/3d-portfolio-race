@@ -22,6 +22,8 @@ export const HUD: React.FC = () => {
   const toggleZenMode = useGameStore((state) => state.toggleZenMode);
   const isStoryTourActive = useGameStore((state) => state.isStoryTourActive);
   const toggleStoryTour = useGameStore((state) => state.toggleStoryTour);
+  const experienceMode = useGameStore((state) => state.experienceMode);
+  const toggleExperienceMode = useGameStore((state) => state.toggleExperienceMode);
   const quality = useGameStore((state) => state.quality);
   const setQuality = useGameStore((state) => state.setQuality);
   const isMobile = useGameStore((state) => state.isMobile);
@@ -140,6 +142,26 @@ export const HUD: React.FC = () => {
           >
             <span>🎬</span>
             <span className="hidden sm:inline">{language === 'vi' ? 'HÀNH TRÌNH (T)' : 'STORY TOUR (T)'}</span>
+          </button>
+
+          {/* Experience Mode Toggle: Story Odyssey vs Race Circuit HUD */}
+          <button
+            onClick={toggleExperienceMode}
+            className={`flex items-center gap-1.5 px-3 py-1.5 border text-[10px] md:text-xs font-bold tracking-wider uppercase transition-all backdrop-blur-md shadow-sm ${
+              experienceMode === 'race'
+                ? 'bg-cyan-500 text-slate-950 border-cyan-300 shadow-[0_0_15px_rgba(0,243,255,0.6)]'
+                : isLight
+                ? 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200'
+                : 'bg-slate-900/80 text-cyan-300 border-slate-700 hover:bg-slate-800'
+            }`}
+            title="Chuyển đổi giao diện: Câu chuyện Portfolio / Đua xe bấm giờ"
+          >
+            <span>{experienceMode === 'race' ? '🏁' : '📖'}</span>
+            <span className="hidden sm:inline">
+              {experienceMode === 'race'
+                ? language === 'vi' ? 'ĐUA XE' : 'RACE HUD'
+                : language === 'vi' ? 'CÂU CHUYỆN' : 'STORY HUD'}
+            </span>
           </button>
 
           {/* Quick View Button for Recruiters */}

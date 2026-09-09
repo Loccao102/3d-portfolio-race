@@ -90,6 +90,11 @@ interface GameState {
   setStoryChapter: (chapter: number) => void;
   nextStoryChapter: () => void;
 
+  // Experience Modes: 'story' (5-Chapter Portfolio Odyssey) | 'race' (Speed Circuit & Lap HUD)
+  experienceMode: 'story' | 'race';
+  setExperienceMode: (mode: 'story' | 'race') => void;
+  toggleExperienceMode: () => void;
+
   // UI & Experience State
   isIntroFinished: boolean;
   setIntroFinished: (finished: boolean) => void;
@@ -232,6 +237,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!isRacing) {
       set({
         isRacing: true,
+        experienceMode: 'race',
         currentLapTime: 0,
         checkpointsPassed: 0,
         checkpointSplits: [null, null, null],
@@ -279,7 +285,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   currentStoryChapter: 0,
   startStoryTour: () => {
     sound.playClick();
-    set({ isStoryTourActive: true, isZenMode: false });
+    set({ isStoryTourActive: true, isZenMode: false, experienceMode: 'story' });
   },
   stopStoryTour: () => set({ isStoryTourActive: false }),
   toggleStoryTour: () => {
@@ -291,6 +297,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   nextStoryChapter: () => {
     set((state) => ({ currentStoryChapter: (state.currentStoryChapter + 1) % 5 }));
+  },
+
+  // Experience Mode Implementation
+  experienceMode: 'story',
+  setExperienceMode: (mode) => set({ experienceMode: mode }),
+  toggleExperienceMode: () => {
+    sound.playClick();
+    set((state) => ({ experienceMode: state.experienceMode === 'story' ? 'race' : 'story' }));
   },
 
   isIntroFinished: false,

@@ -6,6 +6,7 @@ import { MilestoneCard } from './MilestoneCard';
 import { QuickViewModal } from './QuickViewModal';
 import { MiniMap } from './MiniMap';
 import { StoryHUD } from './StoryHUD';
+import { RaceHUD } from './RaceHUD';
 import { NitroOverlay } from './NitroOverlay';
 import { MobileJoystick } from './MobileJoystick';
 import { useGameStore } from '../../stores/useGameStore';
@@ -13,6 +14,7 @@ import { getOrCreatePlayerProfile } from '../../data/playerProfile';
 
 export const OverlayUI: React.FC = () => {
   const setPlayerProfile = useGameStore((state) => state.setPlayerProfile);
+  const experienceMode = useGameStore((state) => state.experienceMode);
 
   useEffect(() => {
     const profile = getOrCreatePlayerProfile();
@@ -23,7 +25,7 @@ export const OverlayUI: React.FC = () => {
     <>
       <Intro />
       <HUD />
-      <StoryHUD />
+      {experienceMode === 'race' ? <RaceHUD /> : <StoryHUD />}
       <NitroOverlay />
       <MilestoneCard />
       <QuickViewModal />
