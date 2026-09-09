@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, Suspense } from 'react';
 import { Physics, RapierRigidBody } from '@react-three/rapier';
 import { Vehicle } from '../vehicle/Vehicle';
 import { RivalRacers } from '../vehicle/RivalRacers';
@@ -42,8 +42,10 @@ export const Experience: React.FC = () => {
 
   return (
     <>
-      {/* Realistic Image-Based Lighting & Reflections */}
-      <Environment preset="city" environmentIntensity={envIntensity} />
+      {/* Realistic Image-Based Lighting & Reflections — isolated Suspense */}
+      <Suspense fallback={null}>
+        <Environment preset="city" environmentIntensity={envIntensity} />
+      </Suspense>
 
       {/* Performance FPS Telemetry Monitor */}
       <PerformanceMonitor />
@@ -91,15 +93,18 @@ export const Experience: React.FC = () => {
         color="#f59e0b"
       />
 
+      {/* City Buildings: GLB async loading isolated in its own Suspense so
+          it never blocks Physics or Ground from rendering */}
+      <Suspense fallback={null}>
+        <CityBuildings />
+      </Suspense>
+
       {/* Physics World Simulation */}
       <Physics gravity={[0, -26, 0]} timeStep="vary">
         {/* World Base Ground & Roads & Grand Speed Circuit */}
         <Ground />
 
-        {/* Real 3D Low-Poly City Buildings & Urban Plazas */}
-        <CityBuildings />
-
-        {/* Instanced City Props (Lamps, Barriers, Trees) */}
+        {/* Instanced City Props (Lamps, Barriers, Trees) — pure geometry, no async */}
         <InstancedProps />
 
         {/* Autonomous AI Rival Racers competing on the Speed Circuit */}
@@ -121,3 +126,4 @@ export const Experience: React.FC = () => {
     </>
   );
 };
+
