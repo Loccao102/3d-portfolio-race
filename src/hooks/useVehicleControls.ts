@@ -29,7 +29,29 @@ export function useVehicleControls() {
   const setIntroFinished = useGameStore((state) => state.setIntroFinished);
 
   useEffect(() => {
+    const resetKeyboard = () => {
+      keyboardState.current.forward = false;
+      keyboardState.current.backward = false;
+      keyboardState.current.left = false;
+      keyboardState.current.right = false;
+      keyboardState.current.brake = false;
+      keyboardState.current.boost = false;
+    };
+
+    const isEditableTarget = (target: EventTarget | null): boolean => {
+      const element = target as HTMLElement | null;
+      if (!element) return false;
+      return (
+        element.isContentEditable ||
+        element.tagName === 'INPUT' ||
+        element.tagName === 'TEXTAREA' ||
+        element.tagName === 'SELECT'
+      );
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isEditableTarget(e.target)) return;
+
       // Any driving key immediately finishes intro to avoid any input delay
       if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
         setIntroFinished(true);
@@ -94,12 +116,22 @@ export function useVehicleControls() {
       }
     };
 
+    const handleBlur = () => resetKeyboard();
+    const handleVisibilityChange = () => {
+      if (document.hidden) resetKeyboard();
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      resetKeyboard();
     };
   }, [setIntroFinished]);
 

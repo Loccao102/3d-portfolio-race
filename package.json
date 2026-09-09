@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test:physics": "node scripts/test-physics.cjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

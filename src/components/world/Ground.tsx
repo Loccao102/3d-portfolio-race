@@ -28,7 +28,9 @@ export const Ground: React.FC = () => {
       {/* 2. Expanded Floating Diorama Island Base */}
       <group position={[0, -0.01, -5]}>
         {/* Top Surface (Daylight vs Dark Tech vs Cyberpunk Night) */}
-        <mesh receiveShadow position={[0, 0, 0]}>
+        {/* The physical floor is at y=0; lower the decorative slab so it does
+            not cover road planes placed just above that surface. */}
+        <mesh receiveShadow position={[0, -0.3, 0]}>
           <boxGeometry args={[186, 0.6, 246]} />
           <meshStandardMaterial
             color={topColor}

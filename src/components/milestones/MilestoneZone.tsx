@@ -5,6 +5,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGameStore, MilestoneId } from '../../stores/useGameStore';
 import { sound } from '../../lib/soundEngine';
+import { isLocalVehicleObject } from '../vehicle/localPhysics';
 
 interface MilestoneZoneProps {
   id: MilestoneId;
@@ -53,7 +54,7 @@ export const MilestoneZone: React.FC<MilestoneZoneProps> = ({
         type="fixed"
         sensor
         onIntersectionEnter={({ other }) => {
-          if (other.rigidBodyObject?.userData?.type === 'vehicle') {
+          if (isLocalVehicleObject(other.rigidBodyObject)) {
             setIsInside(true);
             setActiveMilestone(id);
             markMilestoneVisited(id);
@@ -61,7 +62,7 @@ export const MilestoneZone: React.FC<MilestoneZoneProps> = ({
           }
         }}
         onIntersectionExit={({ other }) => {
-          if (other.rigidBodyObject?.userData?.type === 'vehicle') {
+          if (isLocalVehicleObject(other.rigidBodyObject)) {
             setIsInside(false);
             setActiveMilestone(null);
           }

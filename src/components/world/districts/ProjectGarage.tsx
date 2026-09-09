@@ -4,6 +4,8 @@ import { RigidBody, CuboidCollider, CylinderCollider } from '@react-three/rapier
 import * as THREE from 'three';
 import { useGameStore } from '../../../stores/useGameStore';
 import { projectsData } from '../../../data/projects';
+import { isLocalVehicleObject } from '../../vehicle/localPhysics';
+import { PROJECT_GARAGE_WALL_COLLIDERS } from '../worldPlacements';
 
 export const ProjectGarage: React.FC = () => {
   const setActiveMilestone = useGameStore((state) => state.setActiveMilestone);
@@ -27,6 +29,14 @@ export const ProjectGarage: React.FC = () => {
       {/* 1. Main Hangar Raised Platform */}
       <RigidBody type="fixed">
         <CuboidCollider args={[8, 0.25, 17]} position={[4, 0.25, 0]} />
+        {PROJECT_GARAGE_WALL_COLLIDERS.map((collider, index) => (
+          <CuboidCollider
+            key={`garage-wall-${index}`}
+            args={collider.halfExtents}
+            position={collider.position}
+            rotation={[0, collider.rotationY ?? 0, 0]}
+          />
+        ))}
       </RigidBody>
       <mesh receiveShadow position={[4, 0.25, 0]}>
         <boxGeometry args={[16, 0.5, 34]} />
@@ -64,7 +74,7 @@ export const ProjectGarage: React.FC = () => {
               type="fixed"
               sensor
               onIntersectionEnter={({ other }) => {
-                if (other.rigidBodyObject?.userData?.type === 'vehicle') {
+                  if (isLocalVehicleObject(other.rigidBodyObject)) {
                   setActiveMilestone('projects');
                   setSelectedProject(project.id);
                   markMilestoneVisited('projects');

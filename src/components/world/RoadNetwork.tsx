@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useGameStore } from '../../stores/useGameStore';
+import { isLocalVehicleObject } from '../vehicle/localPhysics';
 
 export const RoadNetwork: React.FC = () => {
   const centerRingsRef = useRef<THREE.Group>(null);
@@ -150,7 +151,7 @@ export const RoadNetwork: React.FC = () => {
           type="fixed"
           sensor
           onIntersectionEnter={({ other }) => {
-            if (other.rigidBodyObject?.userData?.type === 'vehicle') {
+            if (isLocalVehicleObject(other.rigidBodyObject)) {
               crossFinishLine();
             }
           }}
@@ -191,7 +192,7 @@ export const RoadNetwork: React.FC = () => {
           type="fixed"
           sensor
           onIntersectionEnter={({ other }) => {
-            if (other.rigidBodyObject?.userData?.type === 'vehicle') {
+            if (isLocalVehicleObject(other.rigidBodyObject)) {
               passCheckpoint(1);
             }
           }}
@@ -210,7 +211,7 @@ export const RoadNetwork: React.FC = () => {
           type="fixed"
           sensor
           onIntersectionEnter={({ other }) => {
-            if (other.rigidBodyObject?.userData?.type === 'vehicle') {
+            if (isLocalVehicleObject(other.rigidBodyObject)) {
               passCheckpoint(2);
             }
           }}
@@ -229,7 +230,7 @@ export const RoadNetwork: React.FC = () => {
           type="fixed"
           sensor
           onIntersectionEnter={({ other }) => {
-            if (other.rigidBodyObject?.userData?.type === 'vehicle') {
+            if (isLocalVehicleObject(other.rigidBodyObject)) {
               passCheckpoint(3);
             }
           }}

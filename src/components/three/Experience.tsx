@@ -5,7 +5,7 @@ import { RivalRacers } from '../vehicle/RivalRacers';
 import { CameraFollow } from '../camera/CameraFollow';
 import { Ground } from '../world/Ground';
 import { InstancedProps } from '../world/InstancedProps';
-import { CityBuildings } from '../world/CityBuildings';
+import { CityBuildings, CityBuildingColliders } from '../world/CityBuildings';
 import { AboutDistrict } from '../world/districts/AboutDistrict';
 import { TechDistrict } from '../world/districts/TechDistrict';
 import { ProjectGarage } from '../world/districts/ProjectGarage';
@@ -103,9 +103,14 @@ export const Experience: React.FC = () => {
           initialization never causes the outer SceneCanvas Suspense to hide
           the entire scene (that's why everything went black after first frame) */}
       <Suspense fallback={null}>
-        <Physics gravity={[0, -26, 0]} timeStep="vary">
+        <Physics gravity={[0, -26, 0]} timeStep={1 / 60} interpolate>
           {/* World Base Ground & Roads & Grand Speed Circuit */}
           <Ground />
+
+          {/* Major GLB silhouettes use fixed primitive proxies. Keeping the
+              colliders in Physics avoids loading order gaps and leaves garage
+              bay openings clear. */}
+          <CityBuildingColliders />
 
           {/* Instanced City Props (Lamps, Barriers, Trees) — pure geometry, no async */}
           <InstancedProps />

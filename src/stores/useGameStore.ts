@@ -21,11 +21,13 @@ export interface MilestoneWaypoint {
 }
 
 export const MILESTONE_WAYPOINTS: MilestoneWaypoint[] = [
-  { id: 'about', name: 'ABOUT DISTRICT', x: 0, z: 52, color: '#00f3ff' },
-  { id: 'tech', name: 'TECH LAB', x: 0, z: -52, color: '#f59e0b' },
-  { id: 'projects', name: 'PROJECT GARAGE', x: 62, z: 0, color: '#10b981' },
-  { id: 'experiments', name: 'EXPERIMENTS', x: -62, z: 0, color: '#ec4899' },
-  { id: 'contact', name: 'CONTACT STATION', x: 0, z: -105, color: '#38bdf8' },
+  // Targets sit at the approach side of each local sensor, rather than in
+  // the rear of the district props where a building proxy would block entry.
+  { id: 'about', name: 'ABOUT DISTRICT', x: 0, z: 34, color: '#00f3ff' },
+  { id: 'tech', name: 'TECH LAB', x: 0, z: -34, color: '#f59e0b' },
+  { id: 'projects', name: 'PROJECT GARAGE', x: 43, z: 0, color: '#10b981' },
+  { id: 'experiments', name: 'EXPERIMENTS', x: -38, z: 0, color: '#ec4899' },
+  { id: 'contact', name: 'CONTACT STATION', x: 0, z: -71, color: '#38bdf8' },
 ];
 
 export type ThemeMode = 'light' | 'dark' | 'night';

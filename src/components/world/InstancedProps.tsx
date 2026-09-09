@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useLayoutEffect } from 'react';
+import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
 export const InstancedProps: React.FC = () => {
@@ -130,6 +131,25 @@ export const InstancedProps: React.FC = () => {
 
   return (
     <group>
+      {/* Physics proxies mirror the visible instanced transforms. Lights and
+          foliage stay visual; poles, barriers, and trunks are solid. */}
+      <RigidBody type="fixed" colliders={false}>
+        {lampPositions.map(([x, , z], index) => (
+          <CylinderCollider key={`lamp-collider-${index}`} args={[2, 0.12]} position={[x, 2, z]} />
+        ))}
+        {barrierPositions.map(([x, , z, rotY], index) => (
+          <CuboidCollider
+            key={`barrier-collider-${index}`}
+            args={[1.1, 0.45, 0.14]}
+            position={[x, 0.45, z]}
+            rotation={[0, rotY, 0]}
+          />
+        ))}
+        {treePositions.map(([x, , z], index) => (
+          <CylinderCollider key={`tree-collider-${index}`} args={[0.9, 0.38]} position={[x, 0.9, z]} />
+        ))}
+      </RigidBody>
+
       {/* 1. Street Lamp Carbon Poles */}
       <instancedMesh
         ref={streetLampPolesRef}
