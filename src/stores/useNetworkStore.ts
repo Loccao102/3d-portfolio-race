@@ -12,16 +12,25 @@ export interface EmoteEvent {
   timestamp: number;
 }
 
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  text: string;
+  timestamp: number;
+}
+
 interface NetworkState {
   socket: PartySocket | null;
   isConnected: boolean;
   remotePlayers: Record<string, RemotePlayer>;
   myId: string | null;
   activeEmotes: Record<string, EmoteEvent>;
+  chatMessages: ChatMessage[];
   connect: (metadata: Omit<PlayerMetadata, 'id'>) => void;
   disconnect: () => void;
   sendMove: (pose: PlayerPose) => void;
   sendEmote: (emoteIndex: number) => void;
+  sendChat: (text: string) => void;
 }
 
 export const useNetworkStore = create<NetworkState>((set, get) => ({
@@ -30,6 +39,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
   remotePlayers: {},
   myId: null,
   activeEmotes: {},
+  chatMessages: [],
 
   connect: (metadata) => {
     if (get().socket) return;
@@ -100,10 +110,21 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
           }
         });
       }
+      else if (data.type === 'PLAYER_CHAT') {
+        const msg: ChatMessage = {
+          id: Math.random().toString(36).substring(2, 9),
+          senderId: data.id,
+          text: data.text,
+          timestamp: Date.now()
+        };
+        set((state) => ({ 
+          chatMessages: [...state.chatMessages, msg].slice(-50) 
+        }));
+      }
     });
 
     socket.addEventListener('close', () => {
-      set({ isConnected: false, remotePlayers: {}, socket: null, myId: null, activeEmotes: {} });
+      set({ isConnected: false, remotePlayers: {}, socket: null, myId: null, activeEmotes: {}, chatMessages: [] });
     });
 
     set({ socket });
@@ -135,6 +156,23 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
           [myId]: { emoteIndex, timestamp: Date.now() }
         }
       });
+    }
+  },
+
+  sendChat: (text) => {
+    const { socket, isConnected, myId } = get();
+    if (socket && isConnected && myId) {
+      socket.send(JSON.stringify({ type: 'CHAT', text }));
+      // Optimistic update
+      const msg: ChatMessage = {
+        id: Math.random().toString(36).substring(2, 9),
+        senderId: myId,
+        text,
+        timestamp: Date.now()
+      };
+      set((state) => ({ 
+        chatMessages: [...state.chatMessages, msg].slice(-50) 
+      }));
     }
   }
 }));

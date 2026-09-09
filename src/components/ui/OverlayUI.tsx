@@ -12,6 +12,7 @@ import { useGameStore } from '../../stores/useGameStore';
 import { useNetworkStore } from '../../stores/useNetworkStore';
 import { getOrCreatePlayerProfile } from '../../data/playerProfile';
 import { OnlineRoster } from './OnlineRoster';
+import { ChatBox } from './ChatBox';
 
 export const OverlayUI: React.FC = () => {
   const setPlayerProfile = useGameStore((state) => state.setPlayerProfile);
@@ -50,6 +51,7 @@ export const OverlayUI: React.FC = () => {
     <>
       <Intro />
       <OnlineRoster />
+      <ChatBox />
       <HUD />
       <RaceHUD />
       <NitroOverlay />

@@ -22,12 +22,14 @@ export type ClientMessage =
   | { type: 'JOIN'; metadata: PlayerMetadata }
   | { type: 'MOVE'; pose: PlayerPose }
   | { type: 'LEAVE' }
-  | { type: 'EMOTE'; emoteIndex: number };
+  | { type: 'EMOTE'; emoteIndex: number }
+  | { type: 'CHAT'; text: string };
 
 export type ServerMessage =
   | { type: 'SYNC'; players: Record<string, PlayerMetadata & { pose?: PlayerPose }> }
   | { type: 'PLAYER_JOINED'; id: string; metadata: PlayerMetadata }
   | { type: 'PLAYER_LEFT'; id: string }
   | { type: 'PLAYER_MOVED'; id: string; pose: PlayerPose }
-  | { type: 'PLAYER_EMOTE'; id: string; emoteIndex: number };
+  | { type: 'PLAYER_EMOTE'; id: string; emoteIndex: number }
+  | { type: 'PLAYER_CHAT'; id: string; text: string };
 

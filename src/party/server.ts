@@ -66,7 +66,11 @@ export default class RaceServer implements Party.Server {
       }
       else if (data.type === 'EMOTE') {
         const msg: ServerMessage = { type: 'PLAYER_EMOTE', id: sender.id, emoteIndex: data.emoteIndex };
-        this.room.broadcast(JSON.stringify(msg));
+        this.room.broadcast(JSON.stringify(msg), [sender.id]); // Exclude sender to avoid double local emote
+      }
+      else if (data.type === 'CHAT') {
+        const msg: ServerMessage = { type: 'PLAYER_CHAT', id: sender.id, text: data.text };
+        this.room.broadcast(JSON.stringify(msg), [sender.id]); // Exclude sender since we optimistically update locally
       }
     } catch (err) {
       console.error("Invalid message received:", message);
