@@ -20,6 +20,8 @@ export const HUD: React.FC = () => {
   const toggleLofi = useGameStore((state) => state.toggleLofi);
   const isZenMode = useGameStore((state) => state.isZenMode);
   const toggleZenMode = useGameStore((state) => state.toggleZenMode);
+  const isStoryTourActive = useGameStore((state) => state.isStoryTourActive);
+  const toggleStoryTour = useGameStore((state) => state.toggleStoryTour);
   const quality = useGameStore((state) => state.quality);
   const setQuality = useGameStore((state) => state.setQuality);
   const isMobile = useGameStore((state) => state.isMobile);
@@ -124,21 +126,20 @@ export const HUD: React.FC = () => {
             </button>
           </nav>
 
-          {/* Natural VI / EN Language Switcher */}
+          {/* Autopilot Story Tour Button */}
           <button
-            onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-            className={`px-2.5 py-1.5 border text-[10px] font-bold tracking-wider uppercase transition-all backdrop-blur-md ${
-              language === 'vi'
-                ? isLight
-                  ? 'bg-red-50 text-red-700 border-red-300'
-                  : 'bg-red-950/80 text-red-400 border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.3)]'
+            onClick={toggleStoryTour}
+            className={`flex items-center gap-1.5 px-3 py-1.5 border text-[10px] md:text-xs font-bold tracking-wider uppercase transition-all backdrop-blur-md shadow-sm ${
+              isStoryTourActive
+                ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.6)] animate-pulse'
                 : isLight
-                ? 'bg-blue-50 text-blue-700 border-blue-300'
-                : 'bg-blue-950/80 text-blue-400 border-blue-500/50 shadow-[0_0_8px_rgba(59,130,246,0.3)]'
+                ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-400'
+                : 'bg-amber-950/80 hover:bg-amber-900 text-amber-300 border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.25)]'
             }`}
-            title="Chuyển đổi Ngôn ngữ / Switch Language"
+            title="Xem hành trình tự động (Phím T) / Autopilot Story Tour"
           >
-            🌐 {language === 'vi' ? 'TIẾNG VIỆT' : 'ENGLISH'}
+            <span>🎬</span>
+            <span className="hidden sm:inline">{language === 'vi' ? 'HÀNH TRÌNH (T)' : 'STORY TOUR (T)'}</span>
           </button>
 
           {/* Quick View Button for Recruiters */}
@@ -155,6 +156,23 @@ export const HUD: React.FC = () => {
             {t.quickViewBtn}
           </button>
 
+          {/* Natural VI / EN Language Switcher */}
+          <button
+            onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+            className={`px-2.5 py-1.5 border text-[10px] font-bold tracking-wider uppercase transition-all backdrop-blur-md ${
+              language === 'vi'
+                ? isLight
+                  ? 'bg-red-50 text-red-700 border-red-300'
+                  : 'bg-red-950/80 text-red-400 border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.3)]'
+                : isLight
+                ? 'bg-blue-50 text-blue-700 border-blue-300'
+                : 'bg-blue-950/80 text-blue-400 border-blue-500/50 shadow-[0_0_8px_rgba(59,130,246,0.3)]'
+            }`}
+            title="Chuyển đổi Ngôn ngữ / Switch Language"
+          >
+            🌐 {language === 'vi' ? 'VI' : 'EN'}
+          </button>
+
           {/* Procedural Lo-Fi Chill Radio */}
           <button
             onClick={toggleLofi}
@@ -169,76 +187,6 @@ export const HUD: React.FC = () => {
           >
             <Headphones className={`w-3.5 h-3.5 ${lofiEnabled ? 'text-purple-300' : ''}`} />
             <span className="hidden sm:inline">{lofiEnabled ? t.lofiOn : t.lofiOff}</span>
-          </button>
-
-          {/* Sound Effects SFX Mute Toggle */}
-          <button
-            onClick={toggleSound}
-            className={`p-1.5 md:p-2 border transition-colors backdrop-blur-md ${
-              soundEnabled
-                ? 'bg-cyan-950/80 border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(0,243,255,0.3)]'
-                : isLight
-                ? 'bg-white/80 border-slate-300 text-slate-500 hover:text-slate-800'
-                : 'bg-slate-950/80 border-slate-800 text-slate-500 hover:text-slate-300'
-            }`}
-            title={soundEnabled ? t.soundOn : t.soundOff}
-          >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-cyan-400" /> : <VolumeX className="w-4 h-4" />}
-          </button>
-
-          {/* 3-Segment Theme Switcher */}
-          <div className={`flex items-center p-0.5 border text-[10px] font-bold ${panelBg}`}>
-            <button
-              onClick={() => setTheme('light')}
-              className={`flex items-center gap-1 px-2 py-1 transition-all ${
-                theme === 'light'
-                  ? 'bg-amber-400 text-slate-950 shadow-sm'
-                  : 'text-slate-400 hover:text-amber-500'
-              }`}
-              title="Daylight Clean Studio Mode"
-            >
-              <Sun className="w-3 h-3" />
-              <span className="hidden sm:inline">{t.themeDay}</span>
-            </button>
-            <button
-              onClick={() => setTheme('dark')}
-              className={`flex items-center gap-1 px-2 py-1 transition-all ${
-                theme === 'dark'
-                  ? 'bg-slate-700 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-              title="Modern Dark Tech Mode"
-            >
-              <Moon className="w-3 h-3" />
-              <span className="hidden sm:inline">{t.themeDark}</span>
-            </button>
-            <button
-              onClick={() => setTheme('night')}
-              className={`flex items-center gap-1 px-2 py-1 transition-all ${
-                theme === 'night'
-                  ? 'bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(0,243,255,0.5)]'
-                  : 'text-slate-400 hover:text-cyan-400'
-              }`}
-              title="Cyberpunk Neon Night Mode"
-            >
-              <Sparkles className="w-3 h-3" />
-              <span className="hidden sm:inline">{t.themeNeon}</span>
-            </button>
-          </div>
-
-          {/* Quality Mode Toggle (HD / LITE) */}
-          <button
-            onClick={() => setQuality(quality === 'high' ? 'low' : 'high')}
-            className={`px-2 py-1 border text-[10px] font-bold transition-all backdrop-blur-md ${
-              quality === 'high'
-                ? isLight
-                  ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
-                  : 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.3)]'
-                : 'bg-amber-950/80 text-amber-300 border-amber-500/50'
-            }`}
-            title="Graphic Quality"
-          >
-            {quality === 'high' ? t.qualityHD : t.qualityLite}
           </button>
 
           {/* Focus Driving Zen Mode Toggle */}
@@ -278,47 +226,16 @@ export const HUD: React.FC = () => {
         </button>
       )}
 
-      {/* Bottom Bar */}
-      <div className="flex justify-between items-end">
-        {/* Desktop Driving Controls Guide */}
-        <div className={`hidden md:flex flex-col gap-1 text-[11px] p-3.5 border ${panelBg}`}>
-          <div
-            className={`font-semibold mb-1 tracking-wider ${
-              isLight ? 'text-cyan-700' : 'text-cyan-400'
-            }`}
-          >
-            {t.controlsTitle}
-          </div>
-          <div>{t.drive}</div>
-          <div className="text-amber-400 font-semibold drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
-            {t.boost}
-          </div>
-          <div>{t.brake}</div>
-          <div className="text-cyan-400">{t.reset}</div>
-          <div className="text-emerald-400 font-semibold">{t.inspect}</div>
-          <div className="text-purple-400 font-semibold">{t.toggleZen}</div>
-        </div>
-
-        {/* Right Telemetry Column: Exploration + FPS Monitor */}
-        <div className="flex flex-col gap-2 items-end">
-          {/* FPS Live Badge */}
-          <div className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 border ${panelBg}`}>
-            <Activity className="w-3 h-3 text-emerald-500 animate-pulse" />
-            <span>RENDER:</span>
-            <span className="text-emerald-500 font-bold">{fps} FPS</span>
-          </div>
-
-          {/* Landmarks Metric */}
-          <div className={`text-right text-[11px] p-3 border ${panelBg}`}>
-            <div className="tracking-wider">{t.landmarksVisited}</div>
-            <div
-              className={`font-bold text-sm ${
-                isLight ? 'text-cyan-700' : 'text-cyan-300'
-              }`}
-            >
-              {visited.length} / 5
-            </div>
-          </div>
+      {/* Bottom Minimalist Hint Bar (Replacing bulky boxes) */}
+      <div className="flex justify-center items-end pb-2">
+        <div className={`pointer-events-auto px-4 py-1.5 border rounded-full text-[10px] md:text-xs tracking-wider flex items-center gap-3 ${panelBg}`}>
+          <span>⌨️ {t.drive}</span>
+          <span className="opacity-40">•</span>
+          <span className="text-amber-400 font-semibold">{language === 'vi' ? 'T: Xem hành trình' : 'T: Story tour'}</span>
+          <span className="opacity-40">•</span>
+          <span className="text-emerald-400 font-semibold">{t.inspect}</span>
+          <span className="opacity-40">•</span>
+          <span className="text-cyan-400">{t.toggleZen}</span>
         </div>
       </div>
     </div>

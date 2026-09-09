@@ -1,7 +1,6 @@
 import React, { useRef, Suspense } from 'react';
 import { Physics, RapierRigidBody } from '@react-three/rapier';
 import { Vehicle } from '../vehicle/Vehicle';
-import { RivalRacers } from '../vehicle/RivalRacers';
 import { CameraFollow } from '../camera/CameraFollow';
 import { Ground } from '../world/Ground';
 import { InstancedProps } from '../world/InstancedProps';
@@ -110,9 +109,6 @@ export const Experience: React.FC = () => {
 
           {/* Instanced City Props (Lamps, Barriers, Trees) — pure geometry, no async */}
           <InstancedProps />
-
-          {/* Autonomous AI Rival Racers competing on the Speed Circuit */}
-          <RivalRacers />
 
           {/* The 5 Thematic Architectural Districts */}
           <AboutDistrict />

@@ -20,7 +20,7 @@ const ModelInstance: React.FC<ModelInstanceProps> = ({
     const c = scene.clone(true);
     c.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        child.castShadow = true;
+        child.castShadow = false;
         child.receiveShadow = true;
       }
     });

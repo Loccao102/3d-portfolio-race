@@ -1,12 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useVehicleControls } from '../../hooks/useVehicleControls';
 import { useGameStore, MILESTONE_WAYPOINTS } from '../../stores/useGameStore';
+import { STORY_CHAPTERS } from '../../data/storyChapters';
 import { VehicleEffects } from './VehicleEffects';
 import { FerrariModel } from './FerrariModel';
-import { ContactShadows } from '@react-three/drei';
 import { sound } from '../../lib/soundEngine';
 import { LOCAL_VEHICLE_TYPE } from './localPhysics';
 
@@ -28,7 +28,6 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const setIsBoosting = useGameStore((state) => state.setIsBoosting);
     const targetWaypointId = useGameStore((state) => state.targetWaypoint);
     const tickRaceTimer = useGameStore((state) => state.tickRaceTimer);
-    const quality = useGameStore((state) => state.quality);
 
     // Arcade Kinematic States
     const speedRef = useRef(0);
@@ -37,9 +36,27 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const steerAngleRef = useRef(0);
     const posSyncCounter = useRef(0);
     const wasBoostingRef = useRef(false);
+    const storyPauseTimerRef = useRef(0);
+
+    // High-performance soft radial contact shadow decal texture (0 GPU FBO passes)
+    const shadowTexture = useMemo(() => {
+      if (typeof document === 'undefined') return null;
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const gradient = ctx.createRadialGradient(64, 64, 8, 64, 64, 60);
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.75)');
+        gradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.35)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 128, 128);
+      }
+      return new THREE.CanvasTexture(canvas);
+    }, []);
 
     const [vehicleFX, setVehicleFX] = useState({
-      speed: 0,
       isAccelerating: false,
       isBraking: false,
       isReversing: false,
@@ -58,11 +75,11 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       const body = (forwardedRef as React.RefObject<RapierRigidBody | null>)?.current || internalRef.current;
       if (!body) return;
 
-      const controls = getControls();
+      const rawControls = getControls();
       const clampedDelta = Math.min(delta, 0.05);
 
       // 0. Quick Respawn / Reset to track
-      if (controls.reset) {
+      if (rawControls.reset) {
         body.setTranslation({ x: 0, y: 1.2, z: 14 }, true);
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -76,6 +93,76 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
 
       // Tick global race timer if race is active
       tickRaceTimer(clampedDelta);
+
+      // Determine controls: manual user control vs Autopilot Story Tour Cruise
+      let controls = rawControls;
+      const store = useGameStore.getState();
+      const isTourActive = store.isStoryTourActive;
+      const currentPos = body.translation();
+
+      if (isTourActive) {
+        const currentChapter = STORY_CHAPTERS[store.currentStoryChapter] || STORY_CHAPTERS[0];
+        const [tx, , tz] = currentChapter.waypoint;
+        const distToTarget = Math.hypot(tx - currentPos.x, tz - currentPos.z);
+
+        if (distToTarget < 4.5) {
+          // Arrived at destination chapter waypoint: pause and absorb narrative
+          storyPauseTimerRef.current += clampedDelta;
+          controls = { forward: 0, turn: 0, brake: true, boost: false, reset: false };
+
+          // Smoothly align car heading with chapter presentation angle
+          let headingDiff = currentChapter.heading - headingRef.current;
+          while (headingDiff > Math.PI) headingDiff -= Math.PI * 2;
+          while (headingDiff < -Math.PI) headingDiff += Math.PI * 2;
+          headingRef.current += headingDiff * Math.min(1.0, clampedDelta * 3.0);
+
+          if (storyPauseTimerRef.current >= 6.0) {
+            storyPauseTimerRef.current = 0;
+            store.nextStoryChapter();
+          }
+        } else {
+          storyPauseTimerRef.current = 0;
+          // Intelligent grid routing: route through center hub [0, 0] when switching axes
+          let navX = tx;
+          let navZ = tz;
+          if (Math.abs(currentPos.x) > 5 && Math.abs(tz) > 5) {
+            navX = 0;
+            navZ = 0;
+          } else if (Math.abs(currentPos.z) > 5 && Math.abs(tx) > 5) {
+            navX = 0;
+            navZ = 0;
+          }
+
+          const dx = navX - currentPos.x;
+          const dz = navZ - currentPos.z;
+          const desiredHeading = Math.atan2(-dx, -dz);
+          let angleDiff = desiredHeading - headingRef.current;
+          while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+          while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+          const absDiff = Math.abs(angleDiff);
+          const autoTurn = THREE.MathUtils.clamp(angleDiff * 2.2, -1.0, 1.0);
+          let autoForward = 1.0;
+          if (absDiff > 1.2) {
+            autoForward = 0.3;
+          } else if (absDiff > 0.5) {
+            autoForward = 0.65;
+          }
+
+          const cruiseTarget = distToTarget < 12 ? 5.0 : 12.5;
+          if (speedRef.current > cruiseTarget) {
+            autoForward = 0;
+          }
+
+          controls = {
+            forward: autoForward,
+            turn: autoTurn,
+            brake: false,
+            boost: false,
+            reset: false,
+          };
+        }
+      }
 
       // 1. Throttle / Acceleration & Realistic Reverse Dynamics (with Nitro Boost)
       const isBoosting = controls.boost && controls.forward > 0;
@@ -201,29 +288,31 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         setIsBoosting(isBoosting);
       }
 
-      // 10. 3D Waypoint Compass Arrow pointing towards selected milestone
+      // 10. 3D Waypoint Compass Arrow pointing towards selected milestone or story chapter
       if (waypointArrowRef.current) {
-        const currentPos = body.translation();
-        const targetWP = MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypointId) || MILESTONE_WAYPOINTS[0];
-        const dx = targetWP.x - currentPos.x;
-        const dz = targetWP.z - currentPos.z;
+        const currentCoord = body.translation();
+        const storyTarget = STORY_CHAPTERS[store.currentStoryChapter]?.waypoint;
+        const targetWP = isTourActive && storyTarget
+          ? { x: storyTarget[0], z: storyTarget[2] }
+          : MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypointId) || MILESTONE_WAYPOINTS[0];
+        const dx = targetWP.x - currentCoord.x;
+        const dz = targetWP.z - currentCoord.z;
         // Transform direction vector into vehicle's local frame
         const localRight = dx * Math.cos(heading) - dz * Math.sin(heading);
         const localForward = -dx * Math.sin(heading) - dz * Math.cos(heading);
         waypointArrowRef.current.rotation.y = -Math.atan2(localRight, localForward);
       }
 
-      // 11. State Sync for Lighting & Particles
+      // 11. State Sync for Lighting & Particles (Only on discrete boolean state transitions)
+      const isDrivingForward = controls.forward > 0;
       if (
-        Math.abs(vehicleFX.speed - Math.abs(currentSpeed)) > 0.8 ||
-        (controls.forward > 0) !== vehicleFX.isAccelerating ||
+        isDrivingForward !== vehicleFX.isAccelerating ||
         controls.brake !== vehicleFX.isBraking ||
         isReversing !== vehicleFX.isReversing ||
         isBoosting !== vehicleFX.isBoosting
       ) {
         setVehicleFX({
-          speed: Math.abs(currentSpeed),
-          isAccelerating: controls.forward > 0,
+          isAccelerating: isDrivingForward,
           isBraking: controls.brake,
           isReversing,
           isBoosting,
@@ -250,35 +339,16 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         {/* Chassis Box Physics Collider */}
         <CuboidCollider args={[0.85, 0.35, 1.5]} position={[0, 0.45, 0]} friction={0.0} />
 
-        {/* 3D FLOATING CALLSIGN BADGE & WAYPOINT ARROW */}
-        <group position={[0, 2.0, 0]}>
-          {/* Waypoint Arrow */}
-          <group ref={waypointArrowRef} position={[0, 0, 0]}>
-            <mesh position={[0, 0, -0.6]} rotation={[-Math.PI / 2, 0, 0]}>
-              <coneGeometry args={[0.18, 0.5, 4]} />
-              <meshStandardMaterial
-                color={playerProfile.accentColor}
-                emissive={playerProfile.accentColor}
-                emissiveIntensity={1.6}
-              />
-            </mesh>
-          </group>
-
-          {/* Floating Callsign Plate */}
-          <group position={[0, 0.45, 0]}>
-            <mesh>
-              <boxGeometry args={[1.8, 0.28, 0.05]} />
-              <meshStandardMaterial color="#0f172a" roughness={0.3} metalness={0.8} />
-            </mesh>
-            <mesh position={[0, 0, 0.03]}>
-              <planeGeometry args={[1.7, 0.22]} />
-              <meshBasicMaterial color={playerProfile.accentColor} transparent opacity={0.3} />
-            </mesh>
-            <mesh position={[0, 0, 0.04]}>
-              <boxGeometry args={[1.4, 0.04, 0.01]} />
-              <meshBasicMaterial color={playerProfile.accentColor} />
-            </mesh>
-          </group>
+        {/* 3D SLEEK WAYPOINT COMPASS ARROW */}
+        <group ref={waypointArrowRef} position={[0, 1.8, 0]}>
+          <mesh position={[0, 0, -0.6]} rotation={[-Math.PI / 2, 0, 0]}>
+            <coneGeometry args={[0.16, 0.45, 4]} />
+            <meshStandardMaterial
+              color={playerProfile.accentColor}
+              emissive={playerProfile.accentColor}
+              emissiveIntensity={1.8}
+            />
+          </mesh>
         </group>
 
         {/* HIGH-FIDELITY FERRARI SPORTS CAR 3D MODEL */}
@@ -292,22 +362,15 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
             scale={0.95}
           />
 
-          {/* Contact Shadows on the road (High quality only for mobile performance) */}
-          {quality !== 'low' ? (
-            <ContactShadows
-              position={[0, 0.02, 0]}
-              opacity={0.65}
-              scale={5.5}
-              blur={1.8}
-              far={1.6}
-              color="#000000"
-            />
-          ) : (
-            <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={[2.4, 4.4]} />
-              <meshBasicMaterial color="#000000" transparent opacity={0.35} />
-            </mesh>
-          )}
+          {/* High-Performance Soft Vehicle Contact Shadow Decal (Zero FBO overhead) */}
+          <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[2.5, 4.6]} />
+            {shadowTexture ? (
+              <meshBasicMaterial map={shadowTexture} transparent opacity={0.75} depthWrite={false} />
+            ) : (
+              <meshBasicMaterial color="#000000" transparent opacity={0.4} depthWrite={false} />
+            )}
+          </mesh>
 
           {/* Thruster Flame when accelerating */}
           <mesh
@@ -325,7 +388,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
 
           {/* Vehicle Micro-Interactions */}
           <VehicleEffects
-            speed={vehicleFX.speed}
+            speedRef={speedRef}
             isAccelerating={vehicleFX.isAccelerating}
             isBraking={vehicleFX.isBraking}
             isBoosting={vehicleFX.isBoosting}

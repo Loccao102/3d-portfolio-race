@@ -32,6 +32,8 @@ export function useVehicleControls() {
   const mobileActions = useGameStore((state) => state.mobileActions);
   const setIntroFinished = useGameStore((state) => state.setIntroFinished);
   const toggleZenMode = useGameStore((state) => state.toggleZenMode);
+  const toggleStoryTour = useGameStore((state) => state.toggleStoryTour);
+  const stopStoryTour = useGameStore((state) => state.stopStoryTour);
 
   useEffect(() => {
     const resetKeyboard = () => {
@@ -58,9 +60,10 @@ export function useVehicleControls() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isEditableTarget(e.target)) return;
 
-      // Any driving key immediately finishes intro to avoid any input delay
+      // Any driving key immediately finishes intro and disengages autopilot tour
       if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyR'].includes(e.code)) {
         setIntroFinished(true);
+        stopStoryTour();
       }
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
@@ -96,6 +99,9 @@ export function useVehicleControls() {
           break;
         case 'KeyH':
           toggleZenMode();
+          break;
+        case 'KeyT':
+          toggleStoryTour();
           break;
       }
     };

@@ -81,6 +81,15 @@ interface GameState {
   isBoosting: boolean;
   setIsBoosting: (boosting: boolean) => void;
 
+  // Story Narrative & Autopilot Tour
+  isStoryTourActive: boolean;
+  currentStoryChapter: number;
+  startStoryTour: () => void;
+  stopStoryTour: () => void;
+  toggleStoryTour: () => void;
+  setStoryChapter: (chapter: number) => void;
+  nextStoryChapter: () => void;
+
   // UI & Experience State
   isIntroFinished: boolean;
   setIntroFinished: (finished: boolean) => void;
@@ -264,6 +273,25 @@ export const useGameStore = create<GameState>((set, get) => ({
   setVehicleSpeed: (speed) => set({ vehicleSpeed: speed }),
   isBoosting: false,
   setIsBoosting: (boosting) => set({ isBoosting: boosting }),
+
+  // Story Tour Implementation
+  isStoryTourActive: false,
+  currentStoryChapter: 0,
+  startStoryTour: () => {
+    sound.playClick();
+    set({ isStoryTourActive: true, isZenMode: false });
+  },
+  stopStoryTour: () => set({ isStoryTourActive: false }),
+  toggleStoryTour: () => {
+    sound.playClick();
+    set((state) => ({ isStoryTourActive: !state.isStoryTourActive }));
+  },
+  setStoryChapter: (chapter) => {
+    set({ currentStoryChapter: Math.max(0, Math.min(4, chapter)) });
+  },
+  nextStoryChapter: () => {
+    set((state) => ({ currentStoryChapter: (state.currentStoryChapter + 1) % 5 }));
+  },
 
   isIntroFinished: false,
   setIntroFinished: (finished) => set({ isIntroFinished: finished }),

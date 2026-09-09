@@ -5,7 +5,7 @@ import { HUD } from './HUD';
 import { MilestoneCard } from './MilestoneCard';
 import { QuickViewModal } from './QuickViewModal';
 import { MiniMap } from './MiniMap';
-import { RaceHUD } from './RaceHUD';
+import { StoryHUD } from './StoryHUD';
 import { NitroOverlay } from './NitroOverlay';
 import { MobileJoystick } from './MobileJoystick';
 import { useGameStore } from '../../stores/useGameStore';
@@ -23,7 +23,7 @@ export const OverlayUI: React.FC = () => {
     <>
       <Intro />
       <HUD />
-      <RaceHUD />
+      <StoryHUD />
       <NitroOverlay />
       <MilestoneCard />
       <QuickViewModal />

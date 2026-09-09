@@ -3,7 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 interface VehicleEffectsProps {
-  speed: number;
+  speed?: number;
+  speedRef?: React.RefObject<number>;
   isAccelerating: boolean;
   isBraking: boolean;
   isBoosting?: boolean;
@@ -12,7 +13,8 @@ interface VehicleEffectsProps {
 const PARTICLE_COUNT = 24;
 
 export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
-  speed,
+  speed = 0,
+  speedRef,
   isAccelerating,
   isBraking,
   isBoosting = false,
@@ -35,7 +37,8 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
   useFrame((_, delta) => {
     if (!particlesRef.current) return;
 
-    const shouldEmit = (isAccelerating && speed > 2) || (isBraking && speed > 2) || isBoosting;
+    const currentSpeed = speedRef ? Math.abs(speedRef.current) : speed;
+    const shouldEmit = (isAccelerating && currentSpeed > 2) || (isBraking && currentSpeed > 2) || isBoosting;
 
     particles.forEach((p, i) => {
       p.life += delta;
