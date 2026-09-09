@@ -92,7 +92,6 @@ export const RemotePlayer: React.FC<Props> = ({ id, player }) => {
         anchorY="middle"
         outlineWidth={0.03}
         outlineColor="#000000"
-        font="/fonts/Inter-Bold.woff" // Optional: specify font if needed, defaults to sans
       >
         {player.name || id.substring(0, 4)}
       </Text>

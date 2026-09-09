@@ -30,3 +30,4 @@ export const LanguageToggle: React.FC = () => {
     </div>
   );
 };
+

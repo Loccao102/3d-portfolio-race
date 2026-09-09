@@ -95,7 +95,6 @@ export const HeroMonument: React.FC = () => {
             color="#451a03"
             anchorX="center"
             anchorY="middle"
-            font="/fonts/Inter-Bold.ttf"
           >
             {t.heroTitle}
           </Text>

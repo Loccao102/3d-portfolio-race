@@ -61,11 +61,11 @@ export const ChatBox: React.FC = () => {
   };
 
   return (
-    <div className="absolute bottom-4 left-4 z-50 flex flex-col justify-end w-80 font-mono pointer-events-none">
+    <div className="absolute bottom-36 md:bottom-4 left-4 z-40 flex flex-col justify-end w-64 md:w-80 font-mono pointer-events-none">
       
       {/* Messages Area */}
       <div 
-        className={`flex flex-col gap-1 overflow-y-auto transition-all duration-300 ${isOpen ? 'h-64 bg-slate-900/80 backdrop-blur border border-slate-700 rounded-t p-2 pointer-events-auto' : 'h-40 p-2 pointer-events-none'}`}
+        className={`flex flex-col gap-1 overflow-y-auto transition-all duration-300 ${isOpen ? 'h-52 md:h-64 bg-slate-900/90 backdrop-blur border border-slate-700 rounded-t p-2 pointer-events-auto' : 'h-28 md:h-40 p-2 pointer-events-none'}`}
         style={{
           maskImage: !isOpen ? 'linear-gradient(to bottom, transparent, black 40%)' : 'none',
           WebkitMaskImage: !isOpen ? 'linear-gradient(to bottom, transparent, black 40%)' : 'none'
@@ -90,7 +90,7 @@ export const ChatBox: React.FC = () => {
 
       {/* Input Area */}
       {isOpen ? (
-        <form onSubmit={handleSubmit} className="border border-t-0 border-slate-700 bg-slate-800/90 rounded-b p-2 pointer-events-auto flex items-center shadow-lg shadow-black/50">
+        <form onSubmit={handleSubmit} className="border border-t-0 border-slate-700 bg-slate-800/95 rounded-b p-2 pointer-events-auto flex items-center shadow-lg shadow-black/50">
           <span className="text-slate-400 mr-2 text-xs">»</span>
           <input
             ref={inputRef}
@@ -106,8 +106,17 @@ export const ChatBox: React.FC = () => {
           />
         </form>
       ) : (
-        <div className="text-[10px] text-slate-400/70 p-2 drop-shadow-md pointer-events-none">
-          {t.pressEnterToChat}
+        <div className="text-[10px] text-slate-400/70 p-2 drop-shadow-md pointer-events-auto md:pointer-events-none flex items-center gap-2">
+          <button
+            onClick={() => {
+              setIsOpen(true);
+              setTimeout(() => inputRef.current?.focus(), 50);
+            }}
+            className="md:hidden px-2 py-1 bg-slate-800/80 text-cyan-300 rounded border border-slate-700 text-xs shadow"
+          >
+            💬 Chat
+          </button>
+          <span className="hidden md:inline">{t.pressEnterToChat}</span>
         </div>
       )}
     </div>
