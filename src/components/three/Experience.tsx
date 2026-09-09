@@ -12,7 +12,6 @@ import { TechDistrict } from '../world/districts/TechDistrict';
 import { ProjectGarage } from '../world/districts/ProjectGarage';
 import { ExperimentLab } from '../world/districts/ExperimentLab';
 import { ContactStation } from '../world/districts/ContactStation';
-import { HeroMonument } from '../world/HeroMonument';
 import { PerformanceMonitor } from './PerformanceMonitor';
 
 import { Environment } from '@react-three/drei';
@@ -109,24 +108,19 @@ export const Experience: React.FC = () => {
           {/* World Base Ground & Roads & Grand Speed Circuit */}
           <Ground />
 
-          {/* OLD CITY BUILDINGS: Commented out to focus entirely on the Star Portfolio Layout
-            <CityBuildingColliders />
-            <InstancedProps />
-          */}
+          {/* Real 3D Low-Poly City Buildings & Urban Plazas Colliders */}
+          <CityBuildingColliders />
+          <InstancedProps />
 
-          {/* Autonomous AI Rival Racers (temporarily disabled as circuit is being reshaped) 
+          {/* Autonomous AI Rival Racers on the Speed Circuit */}
           <RivalRacers />
-          */}
 
-          {/* The Central Hero Monument */}
-          <HeroMonument />
-
-          {/* The 5 Thematic Architectural Districts (5-Pointed Star Layout, Radius = 60) */}
-          <ProjectGarage  position={[0, 0, -60]} rotation={[0, 0, 0]} />
-          <TechDistrict   position={[57.1, 0, -18.5]} rotation={[0, -Math.PI / 2.5, 0]} />
-          <AboutDistrict  position={[35.3, 0, 48.5]} rotation={[0, -Math.PI / 1.25, 0]} />
-          <ContactStation position={[-35.3, 0, 48.5]} rotation={[0, Math.PI / 1.25, 0]} />
-          <ExperimentLab  position={[-57.1, 0, -18.5]} rotation={[0, Math.PI / 2.5, 0]} />
+          {/* The 5 Thematic Architectural Districts */}
+          <AboutDistrict />
+          <TechDistrict />
+          <ProjectGarage />
+          <ExperimentLab />
+          <ContactStation />
 
           {/* Remote Multiplayer Opponents */}
           <RemotePlayers />
