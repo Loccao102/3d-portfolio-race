@@ -94,9 +94,36 @@ export const projectsData: ProjectCaseStudy[] = [
       'Sub-30ms peer cursor interpolation with zero rubber-banding.',
       'Adopted by internal teams for architectural diagramming and sprint brainstorms.',
     ],
-    github: 'https://github.com',
-    demo: 'https://demo.example.com',
+    github: 'https://github.com/Loccao102',
+    demo: 'https://github.com/Loccao102',
     color: '#ffaa00',
+  },
+  {
+    id: 'cyber-configurator-engine',
+    bayNumber: 'BAY_04',
+    title: 'Photorealistic 3D Vehicle Configurator & Dealership Studio',
+    subtitle: 'Real-time PBR material customization, HDR environment lighting & dynamic quotes',
+    tagline: 'Interactive WebGL automotive showroom driving a 48% conversion boost in customer orders.',
+    category: 'Creative Tech / 3D E-Commerce',
+    year: '2024',
+    tags: ['Three.js', 'React', 'WebGL', 'GLSL', 'Node.js', 'Tailwind'],
+    problem:
+      'Traditional 2D photo galleries failed to convey the premium look and feel of custom vehicle finishes, resulting in high bounce rates and prolonged customer purchasing cycles.',
+    solution:
+      'Engineered a real-time 3D configurator with physically based rendering (PBR), clearcoat procedural car paints, dynamic HDR reflections, and live bill-of-materials generation.',
+    decisions: [
+      'Authored custom GLSL micro-flake shader for metallic and iridescent car body paint simulations.',
+      'Implemented progressive texture streaming and mesh Draco compression, reducing initial 3D load time by 68%.',
+      'Integrated real-time spec sheet PDF generation and dealership CRM lead synchronization.',
+    ],
+    results: [
+      '48% increase in completed build configurations and direct test-drive inquiries.',
+      'Sub-2 second load time on 4G mobile connections with compressed assets.',
+      'Zero WebGL crashes across 120,000+ customer design sessions.',
+    ],
+    github: 'https://github.com/Loccao102',
+    demo: 'https://github.com/Loccao102',
+    color: '#ec4899',
   },
 ];
 

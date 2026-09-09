@@ -65,6 +65,8 @@ interface GameState {
   bestLapTime: number | null;
   currentLap: number;
   checkpointsPassed: number;
+  checkpointSplits: (number | null)[];
+  bestCheckpointSplits: (number | null)[];
   raceNotification: string | null;
   setRaceNotification: (msg: string | null) => void;
   tickRaceTimer: (delta: number) => void;
@@ -91,9 +93,13 @@ interface GameState {
   quickViewTab: 'about' | 'tech' | 'projects' | 'experiments' | 'contact';
   setQuickViewTab: (tab: 'about' | 'tech' | 'projects' | 'experiments' | 'contact') => void;
 
-  // Virtual Joystick (Mobile)
+  // Virtual Joystick & Mobile Actions
   joystickInput: { x: number; y: number };
   setJoystickInput: (input: { x: number; y: number }) => void;
+  isMobile: boolean;
+  setIsMobile: (isMobile: boolean) => void;
+  mobileActions: { boost: boolean; brake: boolean; reset: boolean };
+  setMobileAction: (action: 'boost' | 'brake' | 'reset', active: boolean) => void;
 
   // Settings & Audio
   soundEnabled: boolean;
@@ -145,11 +151,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   visitedMilestones: [],
   setActiveMilestone: (id) =>
     set((state) => {
-      if (!id) return { activeMilestone: null, isCardOpen: false };
+      if (!id) return { activeMilestone: null };
       const visited = state.visitedMilestones.includes(id)
         ? state.visitedMilestones
         : [...state.visitedMilestones, id];
-      return { activeMilestone: id, visitedMilestones: visited, isCardOpen: true };
+      return { activeMilestone: id, visitedMilestones: visited };
     }),
   setTargetWaypoint: (id) => set({ targetWaypoint: id }),
   setSelectedProject: (id) => set({ selectedProjectId: id }),
@@ -164,9 +170,16 @@ export const useGameStore = create<GameState>((set, get) => ({
   isRacing: false,
   setIsRacing: (racing) => set({ isRacing: racing }),
   currentLapTime: 0,
-  bestLapTime: null,
+  bestLapTime: typeof window !== 'undefined' ? (() => {
+    try {
+      const cached = localStorage.getItem('cao_tien_loc_best_lap');
+      return cached ? parseFloat(cached) : null;
+    } catch { return null; }
+  })() : null,
   currentLap: 1,
   checkpointsPassed: 0,
+  checkpointSplits: [null, null, null],
+  bestCheckpointSplits: [null, null, null],
   raceNotification: null,
   setRaceNotification: (msg) => set({ raceNotification: msg }),
 
@@ -178,18 +191,38 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   passCheckpoint: (index) => {
-    const { checkpointsPassed } = get();
+    const { checkpointsPassed, currentLapTime, bestCheckpointSplits } = get();
     if (index === checkpointsPassed + 1) {
-      set({ checkpointsPassed: index, raceNotification: `CHECKPOINT ${index}/3!` });
-      sound.playClick();
-      setTimeout(() => set({ raceNotification: null }), 1200);
+      const splits = [...get().checkpointSplits];
+      splits[index - 1] = currentLapTime;
+
+      let splitInfo = '';
+      if (bestCheckpointSplits[index - 1] !== null) {
+        const delta = currentLapTime - (bestCheckpointSplits[index - 1] as number);
+        const sign = delta > 0 ? '+' : '';
+        splitInfo = ` (${sign}${delta.toFixed(2)}s)`;
+      }
+
+      set({
+        checkpointsPassed: index,
+        checkpointSplits: splits,
+        raceNotification: `SECTOR ${index}/3 PASSED${splitInfo}!`,
+      });
+      sound.playCheckpoint();
+      setTimeout(() => set({ raceNotification: null }), 1400);
     }
   },
 
   crossFinishLine: () => {
-    const { isRacing, currentLapTime, bestLapTime, checkpointsPassed, currentLap } = get();
+    const { isRacing, currentLapTime, bestLapTime, checkpointsPassed, currentLap, checkpointSplits } = get();
     if (!isRacing) {
-      set({ isRacing: true, currentLapTime: 0, checkpointsPassed: 0, raceNotification: 'LAP STARTED! GO GO GO!' });
+      set({
+        isRacing: true,
+        currentLapTime: 0,
+        checkpointsPassed: 0,
+        checkpointSplits: [null, null, null],
+        raceNotification: 'SPEED CIRCUIT // LAP STARTED! GO GO GO!',
+      });
       sound.playZoneEnter();
       setTimeout(() => set({ raceNotification: null }), 1800);
       return;
@@ -198,17 +231,25 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (checkpointsPassed >= 3) {
       const isNewBest = bestLapTime === null || currentLapTime < bestLapTime;
       const newBest = isNewBest ? currentLapTime : bestLapTime;
-      set({
+      if (isNewBest && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('cao_tien_loc_best_lap', String(newBest));
+        } catch {}
+      }
+
+      set((state) => ({
         bestLapTime: newBest,
+        bestCheckpointSplits: isNewBest ? checkpointSplits : state.bestCheckpointSplits,
         currentLap: currentLap + 1,
         currentLapTime: 0,
         checkpointsPassed: 0,
+        checkpointSplits: [null, null, null],
         raceNotification: isNewBest
-          ? `NEW LAP RECORD: ${currentLapTime.toFixed(2)}s!`
+          ? `🏆 NEW LAP RECORD: ${currentLapTime.toFixed(2)}s!`
           : `LAP COMPLETED: ${currentLapTime.toFixed(2)}s`,
-      });
-      sound.playZoneEnter();
-      setTimeout(() => set({ raceNotification: null }), 2500);
+      }));
+      sound.playLapComplete();
+      setTimeout(() => set({ raceNotification: null }), 2600);
     }
   },
 
@@ -238,6 +279,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   joystickInput: { x: 0, y: 0 },
   setJoystickInput: (input) => set({ joystickInput: input }),
+  isMobile: false,
+  setIsMobile: (isMobile) => set({ isMobile }),
+  mobileActions: { boost: false, brake: false, reset: false },
+  setMobileAction: (action, active) =>
+    set((state) => ({
+      mobileActions: { ...state.mobileActions, [action]: active },
+    })),
 
   soundEnabled: false,
   toggleSound: () =>
@@ -246,8 +294,23 @@ export const useGameStore = create<GameState>((set, get) => ({
       sound.setEnabled(next);
       return { soundEnabled: next };
     }),
-  quality: 'high',
-  setQuality: (quality) => set({ quality }),
+  quality: typeof window !== 'undefined' ? (() => {
+    try {
+      const cached = localStorage.getItem('cao_tien_loc_quality');
+      if (cached === 'low' || cached === 'high') return cached;
+      if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return 'low';
+      if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) return 'low';
+    } catch {}
+    return 'high';
+  })() : 'high',
+  setQuality: (quality) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cao_tien_loc_quality', quality);
+      } catch {}
+    }
+    set({ quality });
+  },
 
   fps: 60,
   setFps: (fps) => set({ fps }),

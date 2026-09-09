@@ -15,6 +15,13 @@ export interface DeveloperProfile {
     email: string;
     telegram?: string;
   };
+  stats: { label: string; value: string }[];
+  experience: {
+    period: string;
+    role: string;
+    company: string;
+    highlights: string[];
+  }[];
 }
 
 export const developerData: DeveloperProfile = {
@@ -71,5 +78,33 @@ export const developerData: DeveloperProfile = {
     email: 'caotienloc.dev@gmail.com',
     telegram: 'https://t.me',
   },
+  stats: [
+    { label: 'ENGINEERING EXP', value: '4+ Years' },
+    { label: 'CLIENTS & USERS', value: '450K+' },
+    { label: 'SHIPPED SYSTEMS', value: '15+ Apps' },
+    { label: 'WEBGL TARGET', value: '60 FPS' },
+  ],
+  experience: [
+    {
+      period: '2023 — PRESENT',
+      role: 'Lead Creative Developer & WebGL Architect',
+      company: 'Interactive Tech Studio',
+      highlights: [
+        'Architected high-performance WebGL 3D diorama and interactive product showcases in Three.js and React Three Fiber.',
+        'Engineered procedural asset loaders, memory management pipelines, and adaptive low-end mobile shaders.',
+        'Boosted average user engagement duration by 320% across digital campaign launches.',
+      ],
+    },
+    {
+      period: '2021 — 2023',
+      role: 'Fullstack Systems Engineer (.NET & React)',
+      company: 'Enterprise Learning Platform',
+      highlights: [
+        'Constructed high-concurrency online examination infrastructure serving 450,000+ test submissions with zero data loss.',
+        'Optimized Redis distributed caching and WebSocket real-time proctoring clusters, slashing latency below 50ms.',
+        'Mentored junior engineers and established CI/CD automated test suites for mission-critical services.',
+      ],
+    },
+  ],
 };
 

@@ -28,6 +28,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const setIsBoosting = useGameStore((state) => state.setIsBoosting);
     const targetWaypointId = useGameStore((state) => state.targetWaypoint);
     const tickRaceTimer = useGameStore((state) => state.tickRaceTimer);
+    const quality = useGameStore((state) => state.quality);
 
     // Arcade Kinematic States
     const speedRef = useRef(0);
@@ -291,15 +292,22 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
             scale={0.95}
           />
 
-          {/* Contact Shadows on the road */}
-          <ContactShadows
-            position={[0, 0.02, 0]}
-            opacity={0.65}
-            scale={5.5}
-            blur={1.8}
-            far={1.6}
-            color="#000000"
-          />
+          {/* Contact Shadows on the road (High quality only for mobile performance) */}
+          {quality !== 'low' ? (
+            <ContactShadows
+              position={[0, 0.02, 0]}
+              opacity={0.65}
+              scale={5.5}
+              blur={1.8}
+              far={1.6}
+              color="#000000"
+            />
+          ) : (
+            <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[2.4, 4.4]} />
+              <meshBasicMaterial color="#000000" transparent opacity={0.35} />
+            </mesh>
+          )}
 
           {/* Thruster Flame when accelerating */}
           <mesh

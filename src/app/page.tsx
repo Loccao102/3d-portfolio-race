@@ -32,7 +32,7 @@ export default function Home() {
 
   return (
     <main
-      className="relative w-screen h-screen overflow-hidden transition-colors duration-500"
+      className="relative w-full h-screen h-[100dvh] overflow-hidden overscroll-none select-none transition-colors duration-500"
       style={{ backgroundColor: bgColor }}
     >
       {/* 2D HTML/DOM UI Layer */}

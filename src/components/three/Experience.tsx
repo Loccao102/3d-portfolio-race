@@ -40,6 +40,9 @@ export const Experience: React.FC = () => {
   const magentaIntensity = isLight ? 0.4 : isDark ? 1.1 : 2.2;
   const amberIntensity = isLight ? 0.5 : isDark ? 0.8 : 1.3;
 
+  const quality = useGameStore((state) => state.quality);
+  const isLowQuality = quality === 'low';
+
   return (
     <>
       {/* Realistic Image-Based Lighting & Reflections — isolated Suspense */}
@@ -61,8 +64,8 @@ export const Experience: React.FC = () => {
         position={[55, 90, 45]}
         intensity={sunIntensity}
         color={sunColor}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
+        castShadow={!isLowQuality}
+        shadow-mapSize={isLowQuality ? [512, 512] : [1024, 1024]}
         shadow-camera-near={10}
         shadow-camera-far={240}
         shadow-camera-left={-85}

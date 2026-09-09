@@ -11,10 +11,14 @@ export const HUD: React.FC = () => {
   const setTheme = useGameStore((state) => state.setTheme);
   const activeMilestone = useGameStore((state) => state.activeMilestone);
   const visited = useGameStore((state) => state.visitedMilestones);
+  const setCardOpen = useGameStore((state) => state.setCardOpen);
   const setQuickViewOpen = useGameStore((state) => state.setQuickViewOpen);
   const setQuickViewTab = useGameStore((state) => state.setQuickViewTab);
   const soundEnabled = useGameStore((state) => state.soundEnabled);
   const toggleSound = useGameStore((state) => state.toggleSound);
+  const quality = useGameStore((state) => state.quality);
+  const setQuality = useGameStore((state) => state.setQuality);
+  const isMobile = useGameStore((state) => state.isMobile);
   const fps = useGameStore((state) => state.fps);
 
   const handleNavClick = (tab: 'about' | 'tech' | 'projects' | 'experiments' | 'contact') => {
@@ -145,6 +149,21 @@ export const HUD: React.FC = () => {
             </button>
           </div>
 
+          {/* Quality Mode Toggle (High / Low for battery & low-end GPUs) */}
+          <button
+            onClick={() => setQuality(quality === 'high' ? 'low' : 'high')}
+            className={`px-2 py-1 border text-[10px] font-bold transition-all backdrop-blur-md ${
+              quality === 'high'
+                ? isLight
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
+                  : 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.3)]'
+                : 'bg-amber-950/80 text-amber-300 border-amber-500/50'
+            }`}
+            title="Toggle Graphic Quality (High / Low)"
+          >
+            {quality === 'high' ? 'HD' : 'LITE'}
+          </button>
+
           {/* Sound Mute Toggle */}
           <button
             onClick={toggleSound}
@@ -162,17 +181,25 @@ export const HUD: React.FC = () => {
         </div>
       </div>
 
-      {/* Center Zone Banner */}
+      {/* Center Zone Interactive Banner */}
       {activeMilestone && (
-        <div
-          className={`self-center animate-pulse px-6 py-2 border text-xs tracking-widest uppercase backdrop-blur-md ${
+        <button
+          onClick={() => setCardOpen(true)}
+          className={`self-center pointer-events-auto cursor-pointer animate-pulse px-5 py-2 border text-xs tracking-widest uppercase backdrop-blur-md transition-all hover:scale-105 shadow-xl ${
             isLight
-              ? 'bg-white/95 border-cyan-600 text-cyan-800 shadow-lg'
-              : 'bg-slate-950/90 border-cyan-400 text-cyan-300 shadow-[0_0_25px_rgba(0,243,255,0.35)]'
+              ? 'bg-white/95 border-cyan-600 text-cyan-800'
+              : 'bg-slate-950/95 border-cyan-400 text-cyan-300 shadow-[0_0_25px_rgba(0,243,255,0.45)]'
           }`}
         >
-          DISTRICT REACHED: [{activeMilestone.toUpperCase()}]
-        </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block" />
+            <span>
+              {isMobile
+                ? `📍 [${activeMilestone.toUpperCase()}] // CHẠM ĐỂ XEM DỰ ÁN 📄`
+                : `DISTRICT REACHED: [${activeMilestone.toUpperCase()}] — PRESS [E] OR CLICK TO VIEW`}
+            </span>
+          </div>
+        </button>
       )}
 
       {/* Bottom Bar */}
@@ -192,6 +219,7 @@ export const HUD: React.FC = () => {
           </div>
           <div>{t.brake}</div>
           <div className="text-cyan-400">{t.reset}</div>
+          <div className="text-emerald-400 font-semibold">[E] Inspect District</div>
         </div>
 
         {/* Right Telemetry Column: Exploration + FPS Monitor */}

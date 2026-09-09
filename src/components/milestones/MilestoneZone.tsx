@@ -29,6 +29,7 @@ export const MilestoneZone: React.FC<MilestoneZoneProps> = ({
   const beaconRef = useRef<THREE.Mesh>(null);
   const setActiveMilestone = useGameStore((state) => state.setActiveMilestone);
   const markMilestoneVisited = useGameStore((state) => state.markMilestoneVisited);
+  const setCardOpen = useGameStore((state) => state.setCardOpen);
   const theme = useGameStore((state) => state.theme);
 
   const isLight = theme === 'light';
@@ -106,10 +107,19 @@ export const MilestoneZone: React.FC<MilestoneZoneProps> = ({
       </mesh>
 
       {/* Floating 3D Holographic District Signpost */}
-      <Html center distanceFactor={30} position={[0, 4.2, 0]} className="pointer-events-none select-none">
+      <Html
+        center
+        distanceFactor={30}
+        position={[0, 4.4, 0]}
+        className="select-none pointer-events-auto cursor-pointer"
+        onClick={() => {
+          setActiveMilestone(id);
+          setCardOpen(true);
+        }}
+      >
         <div
           className={`px-3 py-1.5 border text-center font-mono transition-all backdrop-blur-md whitespace-nowrap ${
-            isInside ? 'scale-110' : 'scale-100'
+            isInside ? 'scale-110 ring-2 ring-cyan-400' : 'scale-100 hover:scale-105'
           } ${
             isLight
               ? 'bg-white/95 border-slate-300 text-slate-800 shadow-lg'
@@ -131,6 +141,11 @@ export const MilestoneZone: React.FC<MilestoneZoneProps> = ({
           <div className={`text-[9px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             {sublabel}
           </div>
+          {isInside && (
+            <div className="mt-1 px-1.5 py-0.5 text-[8.5px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded animate-pulse">
+              [E] XEM CHI TIẾT
+            </div>
+          )}
         </div>
       </Html>
     </group>

@@ -108,13 +108,49 @@ export const QuickViewModal: React.FC = () => {
                 ))}
               </div>
 
+              {/* Key Engineering Metrics */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                {developerData.stats.map((s, i) => (
+                  <div key={i} className={`p-2.5 border ${cardBox} text-center`}>
+                    <div className={`text-base font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-300'}`}>{s.value}</div>
+                    <div className={`text-[10px] uppercase tracking-wider ${subText}`}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Career Timeline */}
+              <div className={`pt-4 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+                <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isLight ? 'text-cyan-800' : 'text-cyan-400'}`}>
+                  CAREER EXPERIENCE & TRACK RECORD
+                </h4>
+                <div className="space-y-3">
+                  {developerData.experience.map((exp, i) => (
+                    <div key={i} className={`p-3 border ${cardBox}`}>
+                      <div className="flex flex-wrap justify-between items-baseline gap-1 mb-1">
+                        <span className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{exp.role}</span>
+                        <span className={`text-[10px] font-mono ${subText}`}>{exp.period}</span>
+                      </div>
+                      <div className="text-xs font-medium text-cyan-500 mb-2">{exp.company}</div>
+                      <ul className={`space-y-1.5 text-xs ${bodyText}`}>
+                        {exp.highlights.map((h, hi) => (
+                          <li key={hi} className="flex items-start gap-2">
+                            <span className="text-cyan-400 mt-0.5">•</span>
+                            <span>{h}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className={`pt-4 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isLight ? 'text-cyan-800' : 'text-cyan-400'}`}>
                   PRIMARY TECHNICAL FOCUS
                 </h4>
                 <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 text-xs ${bodyText}`}>
                   {developerData.focus.map((f, i) => (
-                    <div key={i} className={`flex items-center gap-2 p-2 ${cardBox}`}>
+                    <div key={i} className={`flex items-center gap-2 p-2.5 ${cardBox}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${isLight ? 'bg-cyan-600' : 'bg-cyan-400'}`} />
                       <span>{f}</span>
                     </div>

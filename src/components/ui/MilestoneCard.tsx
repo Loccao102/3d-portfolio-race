@@ -12,7 +12,32 @@ export const MilestoneCard: React.FC = () => {
   const setSelectedProject = useGameStore((state) => state.setSelectedProject);
   const theme = useGameStore((state) => state.theme);
 
-  if (!isCardOpen || !activeMilestone) return null;
+  const [displayedMilestone, setDisplayedMilestone] = React.useState<typeof activeMilestone>(activeMilestone);
+
+  React.useEffect(() => {
+    if (activeMilestone) {
+      setDisplayedMilestone(activeMilestone);
+    }
+  }, [activeMilestone]);
+
+  // Keyboard shortcut listener: [E] toggles or inspects, [ESC] closes
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setCardOpen(false);
+      } else if (e.key === 'e' || e.key === 'E') {
+        if (isCardOpen) {
+          setCardOpen(false);
+        } else if (activeMilestone) {
+          setCardOpen(true);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeMilestone, isCardOpen, setCardOpen]);
+
+  if (!isCardOpen || !displayedMilestone) return null;
 
   const isLight = theme === 'light';
   const isNight = theme === 'night';
@@ -58,7 +83,7 @@ export const MilestoneCard: React.FC = () => {
 
   // Render content based on current district
   const renderDistrictContent = () => {
-    switch (activeMilestone) {
+    switch (displayedMilestone) {
       case 'about':
         return (
           <div className="space-y-4">
@@ -73,6 +98,42 @@ export const MilestoneCard: React.FC = () => {
               {developerData.bio.map((paragraph, i) => (
                 <p key={i}>{paragraph}</p>
               ))}
+            </div>
+
+            {/* Key Engineering Metrics */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              {developerData.stats.map((s, i) => (
+                <div key={i} className={`p-2 border ${cardBox} text-center`}>
+                  <div className={`text-xs font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-300'}`}>{s.value}</div>
+                  <div className={`text-[9px] uppercase tracking-wider ${subText}`}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Career Timeline */}
+            <div className="pt-2">
+              <h4 className={`text-[11px] font-semibold uppercase tracking-wider mb-2 ${subText}`}>
+                CAREER TIMELINE
+              </h4>
+              <div className="space-y-2.5">
+                {developerData.experience.map((exp, i) => (
+                  <div key={i} className={`p-2.5 border ${cardBox}`}>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <span className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{exp.role}</span>
+                      <span className={`text-[9px] font-mono ${subText}`}>{exp.period}</span>
+                    </div>
+                    <div className="text-[11px] font-medium text-cyan-400 mb-1.5">{exp.company}</div>
+                    <ul className={`space-y-1 text-[11px] ${bodyText}`}>
+                      {exp.highlights.map((h, hi) => (
+                        <li key={hi} className="flex items-start gap-1.5">
+                          <span className="text-cyan-400 mt-0.5">•</span>
+                          <span>{h}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="pt-2">
@@ -378,22 +439,26 @@ export const MilestoneCard: React.FC = () => {
   };
 
   return (
-    <aside className={`fixed top-6 right-6 bottom-6 w-full max-w-md ${panelBg} z-40 flex flex-col pointer-events-auto font-mono animate-in slide-in-from-right-8 duration-300`}>
+    <aside
+      className={`fixed z-40 flex flex-col pointer-events-auto font-mono duration-300
+        bottom-0 left-0 right-0 max-h-[85vh] w-full rounded-t-2xl md:rounded-none md:top-6 md:right-6 md:bottom-6 md:left-auto md:w-full md:max-w-md
+        ${panelBg} animate-in slide-in-from-bottom-8 md:slide-in-from-right-8 shadow-2xl`}
+    >
       {/* Top Bar */}
-      <div className={`flex items-center justify-between px-5 py-4 border-b ${headerBg}`}>
+      <div className={`flex items-center justify-between px-5 py-3.5 border-b ${headerBg}`}>
         <span className={`text-[11px] font-bold tracking-widest uppercase ${
           isLight ? 'text-cyan-800' : isNight ? 'text-cyan-300 drop-shadow-[0_0_8px_rgba(0,243,255,0.7)]' : 'text-cyan-400'
         }`}>
-          ZONE TELEMETRY // [{activeMilestone.toUpperCase()}]
+          DISTRICT INTEL // [{displayedMilestone.toUpperCase()}]
         </span>
         <button
           onClick={() => setCardOpen(false)}
-          className={`p-1 transition-colors ${
+          className={`p-1.5 transition-colors rounded ${
             isLight
               ? 'hover:bg-slate-200 text-slate-500 hover:text-slate-800'
               : 'hover:bg-slate-800 text-slate-400 hover:text-white'
           }`}
-          title="Close details"
+          title="Close details (ESC)"
         >
           <X className="w-4 h-4" />
         </button>
@@ -406,10 +471,10 @@ export const MilestoneCard: React.FC = () => {
 
       {/* Bottom Dismiss / Keep Driving Bar */}
       <div className={`px-5 py-3 border-t flex justify-between items-center text-[11px] ${footerBg}`}>
-        <span className={subText}>WASD TO RESUME DRIVING</span>
+        <span className={subText}>[E] / [ESC] TO CLOSE</span>
         <button
           onClick={() => setCardOpen(false)}
-          className={`px-3 py-1 transition-colors uppercase tracking-wider ${primaryBtn}`}
+          className={`px-3 py-1.5 transition-colors uppercase tracking-wider font-semibold ${primaryBtn}`}
         >
           Continue Exploring
         </button>

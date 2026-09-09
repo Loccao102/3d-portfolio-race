@@ -29,6 +29,7 @@ export function useVehicleControls() {
   });
 
   const joystickInput = useGameStore((state) => state.joystickInput);
+  const mobileActions = useGameStore((state) => state.mobileActions);
   const setIntroFinished = useGameStore((state) => state.setIntroFinished);
 
   useEffect(() => {
@@ -165,10 +166,10 @@ export function useVehicleControls() {
 
     controls.current.forward = Math.max(-1, Math.min(1, forward));
     controls.current.turn = Math.max(-1, Math.min(1, turn));
-    controls.current.brake = keyboardState.current.brake;
-    const isMobileBoost = joystickInput.y > 0.95;
+    controls.current.brake = keyboardState.current.brake || mobileActions.brake;
+    const isMobileBoost = joystickInput.y > 0.95 || mobileActions.boost;
     controls.current.boost = keyboardState.current.boost || isMobileBoost;
-    controls.current.reset = keyboardState.current.reset;
+    controls.current.reset = keyboardState.current.reset || mobileActions.reset;
 
     return controls.current;
   };
