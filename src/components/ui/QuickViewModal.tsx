@@ -2,7 +2,7 @@ import React from 'react';
 import { useGameStore } from '../../stores/useGameStore';
 import { developerData } from '../../data/developer';
 import { projectsData } from '../../data/projects';
-import { X, ExternalLink, Github, Mail, Linkedin, Server, CheckCircle2 } from 'lucide-react';
+import { X, ExternalLink, Github, Mail, Linkedin, Server, CheckCircle2, Phone, MapPin, GraduationCap, Languages } from 'lucide-react';
 import { i18n } from '../../data/i18n';
 
 export const QuickViewModal: React.FC = () => {
@@ -160,6 +160,37 @@ export const QuickViewModal: React.FC = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Education & Academic Foundation */}
+              <div className={`pt-4 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+                <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isLight ? 'text-cyan-800' : 'text-cyan-400'}`}>
+                  HỌC VẤN & NỀN TẢNG ĐÀO TẠO
+                </h4>
+                <div className={`p-3 border ${cardBox} space-y-1`}>
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className={`w-4 h-4 ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`} />
+                    <span className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{developerData.education.school}</span>
+                  </div>
+                  <div className={`text-xs ${subText}`}>
+                    {developerData.education.major} • Niên khóa: {developerData.education.period} ({developerData.education.degree})
+                  </div>
+                </div>
+              </div>
+
+              {/* Foreign Languages */}
+              <div className={`pt-4 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+                <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isLight ? 'text-cyan-800' : 'text-cyan-400'}`}>
+                  NGOẠI NGỮ
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {developerData.languages.map((lang, idx) => (
+                    <div key={idx} className={`px-3 py-1.5 text-xs border ${cardBox} flex items-center gap-2`}>
+                      <Languages className="w-4 h-4 text-cyan-400" />
+                      <span>{lang.name}: <strong>{lang.level}</strong></span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -263,12 +294,33 @@ export const QuickViewModal: React.FC = () => {
             <div className="space-y-4 max-w-lg mx-auto py-4">
               <div className="text-center space-y-1 mb-6">
                 <h3 className={`text-sm font-bold uppercase tracking-widest ${isLight ? 'text-sky-800' : 'text-sky-400'}`}>
-                  ESTABLISH DIRECT CONNECTION
+                  {language === 'vi' ? 'KẾT NỐI TRỰC TIẾP' : 'ESTABLISH DIRECT CONNECTION'}
                 </h3>
-                <p className={`text-xs ${subText}`}>Feel free to reach out directly via email or social networks.</p>
+                <p className={`text-xs ${subText}`}>
+                  {language === 'vi' ? 'Sẵn sàng trao đổi về các dự án High-Performance Backend & Fullstack.' : 'Feel free to reach out directly via phone, email or social networks.'}
+                </p>
               </div>
 
               <div className="space-y-3 text-xs">
+                {developerData.contacts.phone && (
+                  <a
+                    href={`tel:${developerData.contacts.phone}`}
+                    className={`flex items-center justify-between p-3 transition-colors ${
+                      isLight
+                        ? 'bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-emerald-900 shadow-sm'
+                        : isNight
+                        ? 'bg-slate-950/80 hover:bg-emerald-950/50 border border-emerald-500/30 hover:border-emerald-400 text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+                        : 'bg-slate-950 hover:bg-emerald-950/50 border border-slate-800 hover:border-emerald-500/50 text-emerald-300'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Phone className={`w-4 h-4 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                      <span className="font-mono font-medium">{developerData.contacts.phone}</span>
+                    </span>
+                    <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">Call / Zalo</span>
+                  </a>
+                )}
+
                 <a
                   href={`mailto:${developerData.contacts.email}`}
                   className={`flex items-center justify-between p-3 transition-colors ${
@@ -281,10 +333,28 @@ export const QuickViewModal: React.FC = () => {
                 >
                   <span className="flex items-center gap-2.5">
                     <Mail className={`w-4 h-4 ${isLight ? 'text-sky-600' : 'text-sky-400'}`} />
-                    <span>{developerData.contacts.email}</span>
+                    <span className="font-mono">{developerData.contacts.email}</span>
                   </span>
                   <ExternalLink className={`w-3.5 h-3.5 ${subText}`} />
                 </a>
+
+                {developerData.contacts.location && (
+                  <div
+                    className={`flex items-center justify-between p-3 ${
+                      isLight
+                        ? 'bg-slate-50 border border-slate-200 text-slate-700 shadow-sm'
+                        : isNight
+                        ? 'bg-slate-950/80 border border-cyan-500/20 text-slate-300'
+                        : 'bg-slate-950 border border-slate-800 text-slate-300'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <MapPin className={`w-4 h-4 ${isLight ? 'text-rose-500' : 'text-rose-400'}`} />
+                      <span>{developerData.contacts.location}</span>
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider opacity-50">Location</span>
+                  </div>
+                )}
 
                 <a
                   href={developerData.contacts.github}
@@ -300,7 +370,7 @@ export const QuickViewModal: React.FC = () => {
                 >
                   <span className="flex items-center gap-2.5">
                     <Github className="w-4 h-4" />
-                    <span>GitHub Profile</span>
+                    <span>GitHub: Loccao102</span>
                   </span>
                   <ExternalLink className={`w-3.5 h-3.5 ${subText}`} />
                 </a>
@@ -319,7 +389,7 @@ export const QuickViewModal: React.FC = () => {
                 >
                   <span className="flex items-center gap-2.5">
                     <Linkedin className={`w-4 h-4 ${isLight ? 'text-sky-600' : 'text-sky-400'}`} />
-                    <span>LinkedIn Profile</span>
+                    <span>LinkedIn: Cao Lộc</span>
                   </span>
                   <ExternalLink className={`w-3.5 h-3.5 ${subText}`} />
                 </a>

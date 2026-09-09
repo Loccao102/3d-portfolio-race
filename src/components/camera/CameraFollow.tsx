@@ -23,17 +23,16 @@ export const CameraFollow: React.FC<CameraFollowProps> = ({ targetRef }) => {
     if (!targetRef.current) return;
     const clampedDelta = Math.min(delta, 0.05);
 
-    // Read latest speed, boost, and story tour state without triggering React re-renders
+    // Read latest speed and boost state without triggering React re-renders
     const state = useGameStore.getState();
     const vehicleSpeed = state.vehicleSpeed;
     const isBoosting = state.isBoosting;
-    const isTourActive = state.isStoryTourActive;
 
-    // Follow offsets: Normal vs Cinematic Story Tour
-    const ELEVATION = isTourActive ? 16.0 : 14.0;
-    const DISTANCE = isTourActive ? 22.0 : 18.0;
-    const POSITION_LERP = isTourActive ? 0.04 : 0.08;
-    const LOOKAT_LERP = isTourActive ? 0.06 : 0.12;
+    // Camera follow offsets
+    const ELEVATION = 14.0;
+    const DISTANCE = 18.0;
+    const POSITION_LERP = 0.08;
+    const LOOKAT_LERP = 0.12;
 
     // Read current translation from Rapier
     const translation = targetRef.current.translation();
@@ -48,7 +47,7 @@ export const CameraFollow: React.FC<CameraFollowProps> = ({ targetRef }) => {
     if ('fov' in camera) {
       const persCamera = camera as THREE.PerspectiveCamera;
       const speedRatio = Math.min(1.0, vehicleSpeed / 130);
-      const targetFov = isTourActive ? 42 : 46 + (isBoosting ? 8 : speedRatio * 4.5);
+      const targetFov = 46 + (isBoosting ? 8 : speedRatio * 4.5);
       persCamera.fov = THREE.MathUtils.lerp(persCamera.fov, targetFov, clampedDelta * 6.0);
       persCamera.updateProjectionMatrix();
     }

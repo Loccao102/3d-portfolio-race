@@ -10,7 +10,7 @@ export const i18n = {
 
     // Header & Identity
     heroTitle: 'CAO TIẾN LỘC',
-    heroSubtitle: 'KỸ SƯ CÔNG NGHỆ SÁNG TẠO & WEBGL',
+    heroSubtitle: '.NET FULLSTACK DEVELOPER // BACKEND & HỆ THỐNG CAO TẢI',
 
     // Top Navigation Tabs
     navAbout: 'GIỚI THIỆU',
@@ -86,23 +86,23 @@ export const i18n = {
     districts: {
       about: {
         title: 'TRẠM THÔNG TIN',
-        subtitle: 'Bản sắc & Sự nghiệp',
+        subtitle: 'Bản sắc & Triết lý Nền móng',
       },
       tech: {
         title: 'VIỆN CÔNG NGHỆ',
-        subtitle: 'Kỹ năng & Hệ thống',
+        subtitle: 'Làm chủ .NET & Dữ liệu Lớn',
       },
       projects: {
-        title: 'GARAGE DỰ ÁN',
-        subtitle: 'Kiến tạo giá trị thực',
+        title: 'GARAGE THỰC CHIẾN',
+        subtitle: 'Hệ thống Triệu Bản ghi & 10 Tỷ VNĐ',
       },
       experiments: {
         title: 'PHÒNG THÍ NGHIỆM',
-        subtitle: 'Sáng tạo & Đột phá',
+        subtitle: 'Real-time Sockets & Đòn bẩy AI',
       },
       contact: {
         title: 'TRẠM KẾT NỐI',
-        subtitle: 'Hợp tác & Liên hệ',
+        subtitle: 'Cơ hội Hợp tác & Tuyển dụng',
       },
     },
   },
@@ -116,7 +116,7 @@ export const i18n = {
 
     // Header & Identity
     heroTitle: 'CAO TIEN LOC',
-    heroSubtitle: 'CREATIVE TECHNOLOGIST & WEBGL ENGINEER',
+    heroSubtitle: '.NET FULLSTACK DEVELOPER // BACKEND & HIGH CONCURRENCY',
 
     // Top Navigation Tabs
     navAbout: 'ABOUT',
@@ -192,23 +192,23 @@ export const i18n = {
     districts: {
       about: {
         title: 'ABOUT DISTRICT',
-        subtitle: 'Identity & Journey',
+        subtitle: 'Engineering Philosophy & Core',
       },
       tech: {
         title: 'TECH LAB',
-        subtitle: 'Skills & Architecture',
+        subtitle: 'Mastery in .NET & Big Data',
       },
       projects: {
-        title: 'PROJECT GARAGE',
-        subtitle: 'Crafting Real Impact',
+        title: 'PROVING GROUNDS',
+        subtitle: 'High-Concurrency & 10B VNĐ FinTech',
       },
       experiments: {
         title: 'EXPERIMENT LAB',
-        subtitle: 'Creative WebGL & GLSL',
+        subtitle: 'Real-time Sockets & AI Augmentation',
       },
       contact: {
         title: 'CONTACT STATION',
-        subtitle: 'Collab & Opportunities',
+        subtitle: 'Opportunities & Technical Leadership',
       },
     },
   },

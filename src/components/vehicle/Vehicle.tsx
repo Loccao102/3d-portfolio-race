@@ -4,7 +4,6 @@ import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three';
 import { useVehicleControls } from '../../hooks/useVehicleControls';
 import { useGameStore, MILESTONE_WAYPOINTS } from '../../stores/useGameStore';
-import { STORY_CHAPTERS } from '../../data/storyChapters';
 import { VehicleEffects } from './VehicleEffects';
 import { FerrariModel } from './FerrariModel';
 import { sound } from '../../lib/soundEngine';
@@ -36,7 +35,6 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const steerAngleRef = useRef(0);
     const posSyncCounter = useRef(0);
     const wasBoostingRef = useRef(false);
-    const storyPauseTimerRef = useRef(0);
 
     // High-performance soft radial contact shadow decal texture (0 GPU FBO passes)
     const shadowTexture = useMemo(() => {
@@ -94,75 +92,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       // Tick global race timer if race is active
       tickRaceTimer(clampedDelta);
 
-      // Determine controls: manual user control vs Autopilot Story Tour Cruise
-      let controls = rawControls;
-      const store = useGameStore.getState();
-      const isTourActive = store.isStoryTourActive;
-      const currentPos = body.translation();
-
-      if (isTourActive) {
-        const currentChapter = STORY_CHAPTERS[store.currentStoryChapter] || STORY_CHAPTERS[0];
-        const [tx, , tz] = currentChapter.waypoint;
-        const distToTarget = Math.hypot(tx - currentPos.x, tz - currentPos.z);
-
-        if (distToTarget < 4.5) {
-          // Arrived at destination chapter waypoint: pause and absorb narrative
-          storyPauseTimerRef.current += clampedDelta;
-          controls = { forward: 0, turn: 0, brake: true, boost: false, reset: false };
-
-          // Smoothly align car heading with chapter presentation angle
-          let headingDiff = currentChapter.heading - headingRef.current;
-          while (headingDiff > Math.PI) headingDiff -= Math.PI * 2;
-          while (headingDiff < -Math.PI) headingDiff += Math.PI * 2;
-          headingRef.current += headingDiff * Math.min(1.0, clampedDelta * 3.0);
-
-          if (storyPauseTimerRef.current >= 6.0) {
-            storyPauseTimerRef.current = 0;
-            store.nextStoryChapter();
-          }
-        } else {
-          storyPauseTimerRef.current = 0;
-          // Intelligent grid routing: route through center hub [0, 0] when switching axes
-          let navX = tx;
-          let navZ = tz;
-          if (Math.abs(currentPos.x) > 5 && Math.abs(tz) > 5) {
-            navX = 0;
-            navZ = 0;
-          } else if (Math.abs(currentPos.z) > 5 && Math.abs(tx) > 5) {
-            navX = 0;
-            navZ = 0;
-          }
-
-          const dx = navX - currentPos.x;
-          const dz = navZ - currentPos.z;
-          const desiredHeading = Math.atan2(-dx, -dz);
-          let angleDiff = desiredHeading - headingRef.current;
-          while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-          while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-
-          const absDiff = Math.abs(angleDiff);
-          const autoTurn = THREE.MathUtils.clamp(angleDiff * 2.2, -1.0, 1.0);
-          let autoForward = 1.0;
-          if (absDiff > 1.2) {
-            autoForward = 0.3;
-          } else if (absDiff > 0.5) {
-            autoForward = 0.65;
-          }
-
-          const cruiseTarget = distToTarget < 12 ? 5.0 : 12.5;
-          if (speedRef.current > cruiseTarget) {
-            autoForward = 0;
-          }
-
-          controls = {
-            forward: autoForward,
-            turn: autoTurn,
-            brake: false,
-            boost: false,
-            reset: false,
-          };
-        }
-      }
+      const controls = rawControls;
 
       // 1. Throttle / Acceleration & Realistic Reverse Dynamics (with Nitro Boost)
       const isBoosting = controls.boost && controls.forward > 0;
@@ -288,13 +218,10 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         setIsBoosting(isBoosting);
       }
 
-      // 10. 3D Waypoint Compass Arrow pointing towards selected milestone or story chapter
+      // 10. 3D Waypoint Compass Arrow pointing towards selected milestone
       if (waypointArrowRef.current) {
         const currentCoord = body.translation();
-        const storyTarget = STORY_CHAPTERS[store.currentStoryChapter]?.waypoint;
-        const targetWP = isTourActive && storyTarget
-          ? { x: storyTarget[0], z: storyTarget[2] }
-          : MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypointId) || MILESTONE_WAYPOINTS[0];
+        const targetWP = MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypointId) || MILESTONE_WAYPOINTS[0];
         const dx = targetWP.x - currentCoord.x;
         const dz = targetWP.z - currentCoord.z;
         // Transform direction vector into vehicle's local frame

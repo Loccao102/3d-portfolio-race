@@ -2,7 +2,7 @@ import React from 'react';
 import { useGameStore } from '../../stores/useGameStore';
 import { developerData } from '../../data/developer';
 import { projectsData } from '../../data/projects';
-import { X, ExternalLink, Github, Mail, Linkedin, Terminal, Sparkles, Server, CheckCircle2 } from 'lucide-react';
+import { X, ExternalLink, Github, Mail, Linkedin, Terminal, Sparkles, Server, CheckCircle2, Phone, MapPin, GraduationCap, Languages } from 'lucide-react';
 import { i18n } from '../../data/i18n';
 
 export const MilestoneCard: React.FC = () => {
@@ -151,6 +151,37 @@ export const MilestoneCard: React.FC = () => {
                   </li>
                 ))}
               </ul>
+            </div>
+
+            {/* Education & Academic Foundation */}
+            <div className="pt-2">
+              <h4 className={`text-[11px] font-semibold uppercase tracking-wider mb-2 ${subText}`}>
+                HỌC VẤN & NỀN TẢNG KỸ THUẬT
+              </h4>
+              <div className={`p-2.5 border ${cardBox} space-y-1`}>
+                <div className="flex items-center gap-2">
+                  <GraduationCap className={`w-4 h-4 ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`} />
+                  <span className={`text-xs font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{developerData.education.school}</span>
+                </div>
+                <div className={`text-[11px] ${subText}`}>
+                  {developerData.education.major} • {developerData.education.period} ({developerData.education.degree})
+                </div>
+              </div>
+            </div>
+
+            {/* Foreign Languages */}
+            <div className="pt-1">
+              <h4 className={`text-[11px] font-semibold uppercase tracking-wider mb-2 ${subText}`}>
+                NGOẠI NGỮ
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {developerData.languages.map((lang, idx) => (
+                  <div key={idx} className={`px-2.5 py-1 text-[11px] border ${cardBox} flex items-center gap-1.5`}>
+                    <Languages className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{lang.name}: <strong>{lang.level}</strong></span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className={`pt-2 flex items-center justify-between text-[11px] border-t ${isLight ? 'border-slate-200 text-slate-600' : 'border-slate-800 text-slate-400'}`}>
@@ -328,34 +359,43 @@ export const MilestoneCard: React.FC = () => {
           <div className="space-y-4">
             <div className={`border-l-2 ${isLight ? 'border-pink-600' : 'border-pink-500'} pl-3`}>
               <h3 className={`font-bold text-sm tracking-wider uppercase ${isLight ? 'text-pink-800' : 'text-pink-400'}`}>
-                RESTRICTED LAB // PROTOTYPES
+                PHÒNG THÍ NGHIỆM // R&D & ĐÒN BẨY CÔNG NGHỆ
               </h3>
-              <p className={`text-xs ${subText}`}>{developerData.role}</p>
+              <p className={`text-xs ${subText}`}>Real-Time Sockets, AI Workflows & Interactive 3D</p>
             </div>
 
             <div className={`space-y-3 text-xs leading-relaxed ${bodyText}`}>
               <p>
-                This zone houses exploratory prototypes, custom GLSL shader experiments, procedural
-                geometry generators, and experimental web interactions.
+                Không gian nghiên cứu & thử nghiệm các giải pháp kỹ thuật mới, từ kiến trúc Socket thời gian thực đến việc tích hợp AI thế hệ mới vào quy trình phát triển phần mềm thực chiến.
               </p>
 
               <div className={`p-3 space-y-2 ${cardBox}`}>
                 <div className={`flex items-center gap-2 font-semibold ${isLight ? 'text-pink-700' : 'text-pink-300'}`}>
-                  <Sparkles className={`w-4 h-4 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
-                  <span>Interactive Audio-Reactive Mesh</span>
+                  <Terminal className={`w-4 h-4 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
+                  <span>Real-Time Socket State Engine (Wewin/MonkeyCard)</span>
                 </div>
                 <p className={`text-[11px] ${subText}`}>
-                  Real-time FFT audio frequency analysis driving vertex displacement shaders in WebGL.
+                  Nghiên cứu kiến trúc truyền thông 2 chiều Socket.io + Redis Cache phân tán, đảm bảo độ trễ mili-giây và đồng bộ trạng thái trận đấu cho hàng ngàn người chơi đồng thời.
                 </p>
               </div>
 
               <div className={`p-3 space-y-2 ${cardBox}`}>
                 <div className={`flex items-center gap-2 font-semibold ${isLight ? 'text-pink-700' : 'text-pink-300'}`}>
-                  <Terminal className={`w-4 h-4 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
-                  <span>Raymarching Distance Fields</span>
+                  <Sparkles className={`w-4 h-4 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
+                  <span>AI-Augmented Software Engineering</span>
                 </div>
                 <p className={`text-[11px] ${subText}`}>
-                  Custom fragment shader simulating volumetric fractal geometry without polygon meshes.
+                  Tối ưu hóa quy trình coding thực tế bằng Cursor, Claude, GitHub Copilot và ChatGPT: tăng tốc độ sinh boilerplate, phân tích log, review code và nghiên cứu giải pháp kỹ thuật.
+                </p>
+              </div>
+
+              <div className={`p-3 space-y-2 ${cardBox}`}>
+                <div className={`flex items-center gap-2 font-semibold ${isLight ? 'text-pink-700' : 'text-pink-300'}`}>
+                  <Server className={`w-4 h-4 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
+                  <span>Interactive 3D Web & Rapier Physics Simulation</span>
+                </div>
+                <p className={`text-[11px] ${subText}`}>
+                  Nghiên cứu kiến trúc WebGL 60 FPS không cấp phát bộ nhớ rác, vật lý Rapier WebAssembly và kỹ thuật tối ưu render cho thiết bị di động.
                 </p>
               </div>
             </div>
@@ -367,17 +407,33 @@ export const MilestoneCard: React.FC = () => {
           <div className="space-y-4">
             <div className={`border-l-2 ${isLight ? 'border-sky-600' : 'border-sky-400'} pl-3`}>
               <h3 className={`font-bold text-sm tracking-wider uppercase ${isLight ? 'text-sky-800' : 'text-sky-400'}`}>
-                COMMUNICATION ARRAY // ESTABLISH UPLINK
+                KẾT NỐI KỸ THUẬT // TRẠM LIÊN LẠC
               </h3>
-              <p className={`text-xs ${subText}`}>Let's build something extraordinary together.</p>
+              <p className={`text-xs ${subText}`}>Sẵn sàng cho các cơ hội hợp tác kỹ sư & dự án cao tải.</p>
             </div>
 
             <p className={`text-xs leading-relaxed ${bodyText}`}>
-              Whether you have an ambitious creative project, high-performance web engineering needs,
-              or a full-time role—my inbox is open.
+              Cửa sổ liên lạc luôn mở rộng cho các cơ hội nghề nghiệp Backend / .NET Fullstack Developer, vai trò Team Lead hoặc các bài toán kiến trúc hệ thống phân tán, FinTech và High-concurrency.
             </p>
 
             <div className="space-y-2.5 pt-2 font-mono">
+              <a
+                href={`tel:${developerData.contacts.phone}`}
+                className={`flex items-center justify-between p-2.5 text-xs transition-colors ${
+                  isLight
+                    ? 'bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-400 text-emerald-900 shadow-sm'
+                    : isNight
+                    ? 'bg-slate-950/80 hover:bg-emerald-950/60 border border-cyan-500/30 hover:border-emerald-400 text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+                    : 'bg-slate-900 hover:bg-emerald-950/60 border border-slate-800 hover:border-emerald-500/50 text-emerald-300'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Phone className={`w-4 h-4 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                  <span>Điện thoại: {developerData.contacts.phone}</span>
+                </span>
+                <ExternalLink className={`w-3.5 h-3.5 ${subText}`} />
+              </a>
+
               <a
                 href={`mailto:${developerData.contacts.email}`}
                 className={`flex items-center justify-between p-2.5 text-xs transition-colors ${
@@ -390,7 +446,7 @@ export const MilestoneCard: React.FC = () => {
               >
                 <span className="flex items-center gap-2">
                   <Mail className={`w-4 h-4 ${isLight ? 'text-sky-600' : 'text-sky-400'}`} />
-                  <span>{developerData.contacts.email}</span>
+                  <span>Email: {developerData.contacts.email}</span>
                 </span>
                 <ExternalLink className={`w-3.5 h-3.5 ${subText}`} />
               </a>
@@ -409,7 +465,7 @@ export const MilestoneCard: React.FC = () => {
               >
                 <span className="flex items-center gap-2">
                   <Github className="w-4 h-4" />
-                  <span>GitHub Profile</span>
+                  <span>GitHub Profile (github.com/Loccao102)</span>
                 </span>
                 <ExternalLink className={`w-3.5 h-3.5 ${subText}`} />
               </a>
@@ -432,6 +488,13 @@ export const MilestoneCard: React.FC = () => {
                 </span>
                 <ExternalLink className={`w-3.5 h-3.5 ${subText}`} />
               </a>
+
+              <div className={`flex items-center justify-between p-2.5 text-xs border ${cardBox}`}>
+                <span className="flex items-center gap-2">
+                  <MapPin className={`w-4 h-4 ${isLight ? 'text-cyan-600' : 'text-cyan-400'}`} />
+                  <span>Địa điểm: {developerData.contacts.location}</span>
+                </span>
+              </div>
             </div>
           </div>
         );
