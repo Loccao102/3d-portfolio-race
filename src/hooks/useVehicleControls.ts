@@ -6,6 +6,7 @@ export interface VehicleControlsState {
   turn: number;    // -1 (left) to +1 (right)
   brake: boolean;
   boost: boolean;  // Nitro turbo boost
+  reset: boolean;  // R key reset to track
 }
 
 export function useVehicleControls() {
@@ -16,6 +17,7 @@ export function useVehicleControls() {
     right: false,
     brake: false,
     boost: false,
+    reset: false,
   });
 
   const controls = useRef<VehicleControlsState>({
@@ -23,6 +25,7 @@ export function useVehicleControls() {
     turn: 0,
     brake: false,
     boost: false,
+    reset: false,
   });
 
   const joystickInput = useGameStore((state) => state.joystickInput);
@@ -36,6 +39,7 @@ export function useVehicleControls() {
       keyboardState.current.right = false;
       keyboardState.current.brake = false;
       keyboardState.current.boost = false;
+      keyboardState.current.reset = false;
     };
 
     const isEditableTarget = (target: EventTarget | null): boolean => {
@@ -53,7 +57,7 @@ export function useVehicleControls() {
       if (isEditableTarget(e.target)) return;
 
       // Any driving key immediately finishes intro to avoid any input delay
-      if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+      if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyR'].includes(e.code)) {
         setIntroFinished(true);
       }
 
@@ -85,6 +89,9 @@ export function useVehicleControls() {
         case 'ShiftRight':
           keyboardState.current.boost = true;
           break;
+        case 'KeyR':
+          keyboardState.current.reset = true;
+          break;
       }
     };
 
@@ -112,6 +119,9 @@ export function useVehicleControls() {
         case 'ShiftLeft':
         case 'ShiftRight':
           keyboardState.current.boost = false;
+          break;
+        case 'KeyR':
+          keyboardState.current.reset = false;
           break;
       }
     };
@@ -158,6 +168,7 @@ export function useVehicleControls() {
     controls.current.brake = keyboardState.current.brake;
     const isMobileBoost = joystickInput.y > 0.95;
     controls.current.boost = keyboardState.current.boost || isMobileBoost;
+    controls.current.reset = keyboardState.current.reset;
 
     return controls.current;
   };

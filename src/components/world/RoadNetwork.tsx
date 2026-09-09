@@ -4,6 +4,7 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useGameStore } from '../../stores/useGameStore';
 import { isLocalVehicleObject } from '../vehicle/localPhysics';
+import { sound } from '../../lib/soundEngine';
 
 export const RoadNetwork: React.FC = () => {
   const centerRingsRef = useRef<THREE.Group>(null);
@@ -228,6 +229,7 @@ export const RoadNetwork: React.FC = () => {
           onIntersectionEnter={({ other }) => {
             if (isLocalVehicleObject(other.rigidBodyObject)) {
               crossFinishLine();
+              sound.playLapComplete();
             }
           }}
         >
@@ -281,6 +283,7 @@ export const RoadNetwork: React.FC = () => {
           onIntersectionEnter={({ other }) => {
             if (isLocalVehicleObject(other.rigidBodyObject)) {
               passCheckpoint(1);
+              sound.playCheckpoint();
             }
           }}
         >
@@ -307,6 +310,7 @@ export const RoadNetwork: React.FC = () => {
           onIntersectionEnter={({ other }) => {
             if (isLocalVehicleObject(other.rigidBodyObject)) {
               passCheckpoint(2);
+              sound.playCheckpoint();
             }
           }}
         >
@@ -333,6 +337,7 @@ export const RoadNetwork: React.FC = () => {
           onIntersectionEnter={({ other }) => {
             if (isLocalVehicleObject(other.rigidBodyObject)) {
               passCheckpoint(3);
+              sound.playCheckpoint();
             }
           }}
         >

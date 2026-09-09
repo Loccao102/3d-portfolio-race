@@ -6,6 +6,7 @@ interface VehicleEffectsProps {
   speed: number;
   isAccelerating: boolean;
   isBraking: boolean;
+  isBoosting?: boolean;
 }
 
 const PARTICLE_COUNT = 24;
@@ -14,6 +15,7 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
   speed,
   isAccelerating,
   isBraking,
+  isBoosting = false,
 }) => {
   const particlesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -23,8 +25,8 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
       pos: new THREE.Vector3(0, -100, 0),
       vel: new THREE.Vector3(0, 0, 0),
       life: 0,
-      maxLife: 0.4 + Math.random() * 0.3,
-      size: 0.15 + Math.random() * 0.15,
+      maxLife: 0.35 + Math.random() * 0.25,
+      size: 0.16 + Math.random() * 0.16,
     }));
   }, []);
 
@@ -33,7 +35,7 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
   useFrame((_, delta) => {
     if (!particlesRef.current) return;
 
-    const shouldEmit = (isAccelerating && speed > 2) || (isBraking && speed > 3);
+    const shouldEmit = (isAccelerating && speed > 2) || (isBraking && speed > 2) || isBoosting;
 
     particles.forEach((p, i) => {
       p.life += delta;
@@ -41,7 +43,7 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
       if (p.life < p.maxLife) {
         // Move particle with velocity
         p.pos.addScaledVector(p.vel, delta);
-        p.vel.y += delta * 0.2; // Slight upward float
+        p.vel.y += delta * 0.25; // Slight upward thermal float
 
         const progress = p.life / p.maxLife;
         const currentScale = p.size * (1 - progress);
@@ -52,15 +54,15 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
         particlesRef.current?.setMatrixAt(i, dummy.matrix);
       } else {
         // Recycle particle if emitting
-        if (shouldEmit && Math.random() < 0.25) {
+        if (shouldEmit && Math.random() < 0.3) {
           p.life = 0;
-          // Spawn near rear tires (local coordinate offset behind car)
-          const side = Math.random() > 0.5 ? -0.7 : 0.7;
-          p.pos.set(side + (Math.random() - 0.5) * 0.3, 0.1, -1.3);
+          // Spawn near rear tires (+1.35 along Z axis)
+          const side = Math.random() > 0.5 ? -0.75 : 0.75;
+          p.pos.set(side + (Math.random() - 0.5) * 0.2, 0.12, 1.35);
           p.vel.set(
             (Math.random() - 0.5) * 0.6,
-            0.4 + Math.random() * 0.4,
-            -1.5 - Math.random() * 1.5
+            0.3 + Math.random() * 0.4,
+            0.8 + Math.random() * 1.5 // Drifts backward behind car
           );
         } else {
           dummy.position.set(0, -100, 0);
@@ -75,15 +77,15 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
 
   return (
     <group>
-      {/* 1. Volumetric Headlight Projection Cones */}
+      {/* 1. Volumetric Headlight Projection Cones (Facing Forward along -Z) */}
       {/* Left Headlight Light Cone */}
-      <group position={[-0.55, 0.35, 1.6]} rotation={[0.08, 0.05, 0]}>
-        <mesh position={[0, -0.2, 2.4]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.08, 0.8, 4.8, 16, 1, true]} />
+      <group position={[-0.56, 0.38, -1.8]}>
+        <mesh position={[0, -0.15, -2.4]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.08, 0.85, 4.8, 16, 1, true]} />
           <meshBasicMaterial
             color="#00f3ff"
             transparent
-            opacity={0.12}
+            opacity={0.14}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
@@ -91,25 +93,59 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
       </group>
 
       {/* Right Headlight Light Cone */}
-      <group position={[0.55, 0.35, 1.6]} rotation={[0.08, -0.05, 0]}>
-        <mesh position={[0, -0.2, 2.4]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.08, 0.8, 4.8, 16, 1, true]} />
+      <group position={[0.56, 0.38, -1.8]}>
+        <mesh position={[0, -0.15, -2.4]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.08, 0.85, 4.8, 16, 1, true]} />
           <meshBasicMaterial
             color="#00f3ff"
             transparent
-            opacity={0.12}
+            opacity={0.14}
             side={THREE.DoubleSide}
             depthWrite={false}
           />
         </mesh>
       </group>
 
-      {/* 2. Tire Dust & Skid Particle System */}
+      {/* 2. Active Rear Brake Lights (Glows bright red when braking) */}
+      {isBraking && (
+        <group position={[0, 0.48, 1.95]}>
+          {/* Left Brake Light Lens */}
+          <mesh position={[-0.62, 0, 0]}>
+            <boxGeometry args={[0.28, 0.12, 0.05]} />
+            <meshStandardMaterial
+              color="#ef4444"
+              emissive="#ef4444"
+              emissiveIntensity={3.0}
+            />
+          </mesh>
+          {/* Right Brake Light Lens */}
+          <mesh position={[0.62, 0, 0]}>
+            <boxGeometry args={[0.28, 0.12, 0.05]} />
+            <meshStandardMaterial
+              color="#ef4444"
+              emissive="#ef4444"
+              emissiveIntensity={3.0}
+            />
+          </mesh>
+          <pointLight color="#ef4444" intensity={2.5} distance={3.5} />
+        </group>
+      )}
+
+      {/* 3. Active Nitro Boost Exhaust Point Light */}
+      {isBoosting && (
+        <pointLight
+          position={[0, 0.35, 2.2]}
+          color="#00f3ff"
+          intensity={3.5}
+          distance={5.0}
+        />
+      )}
+
+      {/* 4. Tire Dust & Skid Particle System */}
       <instancedMesh ref={particlesRef} args={[undefined, undefined, PARTICLE_COUNT]}>
-        <dodecahedronGeometry args={[0.2, 0]} />
-        <meshBasicMaterial color="#38bdf8" transparent opacity={0.35} />
+        <dodecahedronGeometry args={[0.18, 0]} />
+        <meshBasicMaterial color={isBoosting ? '#38bdf8' : '#cbd5e1'} transparent opacity={0.38} />
       </instancedMesh>
     </group>
   );
 };
-

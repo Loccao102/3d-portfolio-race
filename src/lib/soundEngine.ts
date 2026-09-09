@@ -61,8 +61,8 @@ class SoundEngine {
 
   public updateEngineSpeed(speed: number) {
     if (!this.enabled || !this.engineOsc || !this.ctx || !this.isEngineRunning) return;
-    // Map speed (0 to 18) to frequency (55Hz to 160Hz)
-    const targetFreq = 55 + Math.min(speed, 18) * 6;
+    // Map speed (0 to 24) to frequency (55Hz to 180Hz)
+    const targetFreq = 55 + Math.min(speed, 24) * 5.2;
     this.engineOsc.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.1);
   }
 
@@ -103,6 +103,81 @@ class SoundEngine {
     });
   }
 
+  // High-frequency futuristic cyber turbo sweep during Nitro
+  public playNitroBoost() {
+    if (!this.enabled) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.3);
+
+    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.4);
+  }
+
+  // Sector checkpoint passing dual-chime
+  public playCheckpoint() {
+    if (!this.enabled) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const notes = [587.33, 880]; // D5 -> A5
+    notes.forEach((freq, idx) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.09);
+
+      gain.gain.setValueAtTime(0.07, this.ctx.currentTime + idx * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.09 + 0.25);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(this.ctx.currentTime + idx * 0.09);
+      osc.stop(this.ctx.currentTime + idx * 0.09 + 0.25);
+    });
+  }
+
+  // Grand celebratory lap finish fanfare
+  public playLapComplete() {
+    if (!this.enabled) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 - E5 - G5 - C6
+    notes.forEach((freq, idx) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.09);
+
+      gain.gain.setValueAtTime(0.08, this.ctx.currentTime + idx * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.09 + 0.45);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(this.ctx.currentTime + idx * 0.09);
+      osc.stop(this.ctx.currentTime + idx * 0.09 + 0.45);
+    });
+  }
+
   // Crisp UI Click Feedback
   public playClick() {
     if (!this.enabled) return;
@@ -128,4 +203,3 @@ class SoundEngine {
 }
 
 export const sound = new SoundEngine();
-

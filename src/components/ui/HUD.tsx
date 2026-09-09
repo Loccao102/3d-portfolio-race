@@ -191,7 +191,7 @@ export const HUD: React.FC = () => {
             {t.boost}
           </div>
           <div>{t.brake}</div>
-          <div className="text-pink-400 mt-1">{t.emote}</div>
+          <div className="text-cyan-400">{t.reset}</div>
         </div>
 
         {/* Right Telemetry Column: Exploration + FPS Monitor */}

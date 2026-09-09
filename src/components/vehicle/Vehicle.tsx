@@ -35,12 +35,14 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const yawRateRef = useRef(0);
     const steerAngleRef = useRef(0);
     const posSyncCounter = useRef(0);
+    const wasBoostingRef = useRef(false);
 
     const [vehicleFX, setVehicleFX] = useState({
       speed: 0,
       isAccelerating: false,
       isBraking: false,
       isReversing: false,
+      isBoosting: false,
     });
 
     // Tuned Realistic Arcade Physics Parameters with Nitro Boost
@@ -57,6 +59,19 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
 
       const controls = getControls();
       const clampedDelta = Math.min(delta, 0.05);
+
+      // 0. Quick Respawn / Reset to track
+      if (controls.reset) {
+        body.setTranslation({ x: 0, y: 1.2, z: 14 }, true);
+        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        speedRef.current = 0;
+        headingRef.current = 0;
+        yawRateRef.current = 0;
+        body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+        sound.playClick();
+        return;
+      }
 
       // Tick global race timer if race is active
       tickRaceTimer(clampedDelta);
@@ -139,8 +154,12 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       const halfAngle = heading / 2;
       body.setRotation({ x: 0, y: Math.sin(halfAngle), z: 0, w: Math.cos(halfAngle) }, true);
 
-      // 6. Sound Engine Telemetry
+      // 6. Sound Engine Telemetry & Nitro Sound Trigger
       sound.updateEngineSpeed(Math.abs(currentSpeed));
+      if (isBoosting && !wasBoostingRef.current) {
+        sound.playNitroBoost();
+      }
+      wasBoostingRef.current = isBoosting;
 
       // 7. Visual Chassis Roll & Pitch Animation
       if (chassisMeshRef.current) {
@@ -198,13 +217,15 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
         Math.abs(vehicleFX.speed - Math.abs(currentSpeed)) > 0.8 ||
         (controls.forward > 0) !== vehicleFX.isAccelerating ||
         controls.brake !== vehicleFX.isBraking ||
-        isReversing !== vehicleFX.isReversing
+        isReversing !== vehicleFX.isReversing ||
+        isBoosting !== vehicleFX.isBoosting
       ) {
         setVehicleFX({
           speed: Math.abs(currentSpeed),
           isAccelerating: controls.forward > 0,
           isBraking: controls.brake,
           isReversing,
+          isBoosting,
         });
       }
     });
@@ -299,6 +320,7 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
             speed={vehicleFX.speed}
             isAccelerating={vehicleFX.isAccelerating}
             isBraking={vehicleFX.isBraking}
+            isBoosting={vehicleFX.isBoosting}
           />
         </group>
       </RigidBody>

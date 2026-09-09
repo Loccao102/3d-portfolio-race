@@ -16,8 +16,9 @@ export const i18n = {
     // Instructions
     controlsTitle: 'ĐIỀU KHIỂN',
     drive: 'W A S D / MŨI TÊN - Lái xe',
-    boost: 'SHIFT - Tăng tốc',
+    boost: 'SHIFT - Tăng tốc (Nitro)',
     brake: 'SPACE - Phanh',
+    reset: 'R - Đặt lại vị trí xe',
     emote: '1 2 3 4 - Biểu cảm',
     
     // Districts
@@ -62,8 +63,9 @@ export const i18n = {
     // Instructions
     controlsTitle: 'CONTROLS',
     drive: 'W A S D / ARROWS - Drive',
-    boost: 'SHIFT - Boost',
+    boost: 'SHIFT - Nitro Boost',
     brake: 'SPACE - Brake',
+    reset: 'R - Reset Vehicle',
     emote: '1 2 3 4 - Emote',
     
     // Districts
