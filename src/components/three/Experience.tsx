@@ -132,7 +132,7 @@ export const Experience: React.FC = () => {
           <RemotePlayers />
 
           {/* Customized Playable Cyber-Roadster */}
-          <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 14]} />
+          <Vehicle ref={vehicleRef} initialPosition={[0, 1.2, 4]} />
         </Physics>
       </Suspense>
 

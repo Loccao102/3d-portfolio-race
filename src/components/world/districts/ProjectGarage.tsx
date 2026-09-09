@@ -1,168 +1,111 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { RigidBody, CuboidCollider, CylinderCollider } from '@react-three/rapier';
+import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useGameStore } from '../../../stores/useGameStore';
+import { i18n } from '../../../data/i18n';
+import { DistrictProps } from './AboutDistrict';
 import { projectsData } from '../../../data/projects';
 import { isLocalVehicleObject } from '../../vehicle/localPhysics';
 import { PROJECT_GARAGE_WALL_COLLIDERS } from '../worldPlacements';
-import { DistrictProps } from './AboutDistrict';
 
 export const ProjectGarage: React.FC<DistrictProps> = ({ position = [0, 0, 0], rotation = [0, 0, 0] }) => {
+  const language = useGameStore((state) => state.language);
+  const t = i18n[language].districts.projects;
   const setActiveMilestone = useGameStore((state) => state.setActiveMilestone);
   const setSelectedProject = useGameStore((state) => state.setSelectedProject);
   const markMilestoneVisited = useGameStore((state) => state.markMilestoneVisited);
 
-  const hologramIcons = useRef<(THREE.Group | null)[]>([]);
+  const rocketRef = useRef<THREE.Group>(null);
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
-    hologramIcons.current.forEach((icon, i) => {
-      if (icon) {
-        icon.rotation.y = t * 0.8 * (i % 2 === 0 ? 1 : -1);
-        icon.position.y = 1.6 + Math.sin(t * 2.0 + i) * 0.15;
-      }
-    });
+    const time = clock.getElapsedTime();
+    if (rocketRef.current) {
+      rocketRef.current.position.y = 2 + Math.sin(time * 3) * 0.2;
+    }
   });
 
   return (
     <group position={position} rotation={rotation}>
-      {/* 1. Main Hangar Raised Platform */}
+      {/* Floating Island Base */}
       <RigidBody type="fixed">
-        <CuboidCollider args={[8, 0.25, 17]} position={[4, 0.25, 0]} />
-        {PROJECT_GARAGE_WALL_COLLIDERS.map((collider, index) => (
-          <CuboidCollider
-            key={`garage-wall-${index}`}
-            args={collider.halfExtents}
-            position={collider.position}
-            rotation={[0, collider.rotationY ?? 0, 0]}
-          />
-        ))}
+        <CuboidCollider args={[10, 0.5, 10]} position={[0, -0.5, 0]} />
+        <mesh position={[0, -3, 0]} receiveShadow>
+          <cylinderGeometry args={[10, 2, 6, 16]} />
+          <meshStandardMaterial color="#1e293b" roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0, 0]} receiveShadow>
+          <cylinderGeometry args={[10.2, 10.2, 0.4, 16]} />
+          <meshStandardMaterial color="#334155" roughness={0.5} />
+        </mesh>
       </RigidBody>
-      <mesh receiveShadow position={[4, 0.25, 0]}>
-        <boxGeometry args={[16, 0.5, 34]} />
-        <meshStandardMaterial color="#101726" roughness={0.5} metalness={0.4} />
-      </mesh>
-      {/* Glowing Emerald Green Edge Strip */}
-      <mesh position={[-3.9, 0.51, 0]}>
-        <boxGeometry args={[0.08, 0.04, 33.8]} />
-        <meshBasicMaterial color="#10b981" />
-      </mesh>
 
-      {/* Main Overhead Hangar Sign */}
-      <group position={[-3.8, 6.4, 0]} rotation={[0, -Math.PI / 2, 0]}>
-        <mesh>
-          <boxGeometry args={[15, 1.3, 0.16]} />
-          <meshStandardMaterial color="#080c16" metalness={0.9} roughness={0.2} />
+      {/* Workshop / Modern Architecture mixed with nature */}
+      <group position={[0, 0.2, -4]}>
+        <mesh castShadow receiveShadow position={[0, 2, 0]}>
+          <boxGeometry args={[8, 4, 6]} />
+          <meshStandardMaterial color="#e2e8f0" roughness={0.3} />
         </mesh>
-        <mesh position={[0, 0, 0.1]}>
-          <planeGeometry args={[14.6, 1.1]} />
-          <meshBasicMaterial color="#10b981" transparent opacity={0.25} />
-        </mesh>
-        <mesh position={[0, 0, 0.12]}>
-          <boxGeometry args={[10.5, 0.16, 0.02]} />
-          <meshBasicMaterial color="#10b981" />
+        {/* Glass Window */}
+        <mesh position={[0, 2, 3.01]}>
+          <planeGeometry args={[6, 2]} />
+          <meshStandardMaterial color="#38bdf8" metalness={0.9} roughness={0.1} />
         </mesh>
       </group>
 
-      {/* 2. Three Dedicated Project Bays */}
-      {projectsData.map((project, idx) => {
-        const bayZ = (idx - 1) * 10.0; // Positions: Z = -10, 0, +10
-        return (
-          <group key={project.id} position={[3.8, 0.5, bayZ]}>
-            {/* Rapier Sensor Collider for each specific project */}
-            <RigidBody
-              type="fixed"
-              sensor
-              onIntersectionEnter={({ other }) => {
+      {/* Rocket / High-Tech Build Element */}
+      <group ref={rocketRef} position={[6, 2, -2]}>
+        <mesh castShadow>
+          <cylinderGeometry args={[0.6, 0.8, 3, 16]} />
+          <meshStandardMaterial color="#f8fafc" />
+        </mesh>
+        <mesh castShadow position={[0, 2, 0]}>
+          <coneGeometry args={[0.6, 1.5, 16]} />
+          <meshStandardMaterial color="#ef4444" />
+        </mesh>
+        {/* Rocket Flame */}
+        <mesh position={[0, -1.8, 0]}>
+          <coneGeometry args={[0.4, 1.5, 8]} />
+          <meshBasicMaterial color="#f97316" />
+        </mesh>
+        <pointLight position={[0, -2, 0]} color="#f97316" intensity={2} distance={6} />
+      </group>
+
+      {/* Main Garage Interactive Bays (reusing original logic) */}
+      <group position={[0, 0, 4]}>
+        {projectsData.map((project, index) => {
+          const xPos = index * 4.5 - 4.5; // Centers 3 projects (-4.5, 0, 4.5)
+          const milestoneId = `project-${index + 1}` as any;
+          return (
+            <group key={project.id} position={[xPos, 0, 0]}>
+              <RigidBody
+                type="fixed"
+                sensor
+                onIntersectionEnter={({ other }) => {
                   if (isLocalVehicleObject(other.rigidBodyObject)) {
-                  setActiveMilestone('projects');
-                  setSelectedProject(project.id);
-                  markMilestoneVisited('projects');
-                }
-              }}
-            >
-              <CylinderCollider args={[2.0, 4.2]} position={[0, 1.0, 0]} />
-            </RigidBody>
-
-            {/* Bay Floor Markings (Concentric Glowing Rings) */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-              <ringGeometry args={[3.2, 3.7, 32]} />
-              <meshBasicMaterial color={project.color} transparent opacity={0.65} />
-            </mesh>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.021, 0]}>
-              <circleGeometry args={[1.6, 24]} />
-              <meshBasicMaterial color={project.color} transparent opacity={0.15} />
-            </mesh>
-
-            {/* Rotating 3D Holographic Project Icon */}
-            <group
-              ref={(el) => {
-                hologramIcons.current[idx] = el;
-              }}
-              position={[0, 1.6, 0]}
-            >
-              {idx === 0 && (
-                // Bay 1: Server Core Stack
-                <group>
-                  <mesh>
-                    <boxGeometry args={[1.2, 0.35, 1.2]} />
-                    <meshStandardMaterial color={project.color} emissive={project.color} emissiveIntensity={0.8} wireframe />
-                  </mesh>
-                  <mesh position={[0, 0.5, 0]}>
-                    <boxGeometry args={[1.0, 0.35, 1.0]} />
-                    <meshStandardMaterial color={project.color} emissive={project.color} emissiveIntensity={0.8} wireframe />
-                  </mesh>
-                </group>
-              )}
-              {idx === 1 && (
-                // Bay 2: Cyber Geometric Crystal
-                <mesh>
-                  <octahedronGeometry args={[0.85, 0]} />
-                  <meshStandardMaterial color={project.color} emissive={project.color} emissiveIntensity={1.0} wireframe />
-                </mesh>
-              )}
-              {idx === 2 && (
-                // Bay 3: Node Network Matrix
-                <mesh>
-                  <icosahedronGeometry args={[0.85, 0]} />
-                  <meshStandardMaterial color={project.color} emissive={project.color} emissiveIntensity={0.9} wireframe />
-                </mesh>
-              )}
-            </group>
-
-            {/* Industrial Overhead Gantry Arch & Downward Spotlight */}
-            <group position={[4.0, 0, 0]}>
-              <mesh castShadow position={[0, 2.4, 0]}>
-                <boxGeometry args={[0.35, 4.8, 0.35]} />
-                <meshStandardMaterial color="#1e293b" metalness={0.85} roughness={0.2} />
-              </mesh>
-              <mesh position={[-4.0, 4.8, 0]}>
-                <boxGeometry args={[8.2, 0.3, 0.3]} />
-                <meshStandardMaterial color="#1e293b" metalness={0.85} roughness={0.2} />
-              </mesh>
-              <pointLight
-                position={[-4.0, 4.5, 0]}
-                intensity={2.2}
-                distance={8}
-                color={project.color}
-              />
-            </group>
-
-            {/* Bay Indicator Neon Label (e.g. "BAY_01") */}
-            <group position={[-4.0, 3.2, 0]} rotation={[0, -Math.PI / 2, 0]}>
-              <mesh position={[0, 0, 0]}>
-                <boxGeometry args={[2.8, 0.7, 0.06]} />
-                <meshStandardMaterial color="#080c16" metalness={0.9} />
-              </mesh>
-              <mesh position={[0, 0, 0.05]}>
-                <boxGeometry args={[2.2, 0.1, 0.02]} />
-                <meshBasicMaterial color={project.color} />
+                    setActiveMilestone(milestoneId);
+                    setSelectedProject(project.id);
+                    markMilestoneVisited(milestoneId);
+                  }
+                }}
+                onIntersectionExit={({ other }) => {
+                  if (isLocalVehicleObject(other.rigidBodyObject)) {
+                    setActiveMilestone(null);
+                  }
+                }}
+              >
+                <CuboidCollider args={[1.5, 2, 1.5]} position={[0, 2, 0]} />
+              </RigidBody>
+              {/* Holographic Platform */}
+              <mesh position={[0, 0.1, 0]}>
+                <cylinderGeometry args={[1.6, 1.8, 0.2, 16]} />
+                <meshStandardMaterial color="#10b981" />
               </mesh>
             </group>
-          </group>
-        );
-      })}
+          );
+        })}
+      </group>
+
     </group>
   );
 };

@@ -1,126 +1,135 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
-import { Text, Float, SpotLight, useTexture } from '@react-three/drei';
+import { Text, Float, SpotLight } from '@react-three/drei';
 import * as THREE from 'three';
+import { useGameStore } from '../../stores/useGameStore';
+import { i18n } from '../../data/i18n';
 
 export const HeroMonument: React.FC = () => {
+  const language = useGameStore((state) => state.language);
+  const t = i18n[language];
   const innerRingRef = useRef<THREE.Mesh>(null);
-  const outerRingRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
+    const time = clock.getElapsedTime();
     if (innerRingRef.current) {
-      innerRingRef.current.rotation.y = t * 0.5;
-    }
-    if (outerRingRef.current) {
-      outerRingRef.current.rotation.y = -t * 0.25;
-      outerRingRef.current.rotation.z = Math.sin(t * 0.5) * 0.1;
+      innerRingRef.current.rotation.y = time * 0.1;
     }
   });
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Central Plinth / Pedestal */}
+      {/* Central Plinth / Pedestal (Trống Đồng - Bronze Drum) */}
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[4, 0.5, 4]} position={[0, 0.5, 0]} />
-        <mesh receiveShadow castShadow position={[0, 0.5, 0]}>
-          <cylinderGeometry args={[4, 4.5, 1, 32]} />
-          <meshStandardMaterial color="#0b1120" metalness={0.8} roughness={0.2} />
+        <mesh receiveShadow castShadow position={[0, 0.4, 0]}>
+          <cylinderGeometry args={[4, 4.5, 0.8, 32]} />
+          <meshStandardMaterial color="#b45309" metalness={0.6} roughness={0.4} /> {/* Bronze / Gold */}
         </mesh>
-        {/* Glow Ring on Pedestal */}
-        <mesh position={[0, 1.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[3.6, 3.8, 32]} />
-          <meshBasicMaterial color="#00f3ff" transparent opacity={0.8} />
+        {/* Bronze Drum Top Face */}
+        <mesh ref={innerRingRef} position={[0, 0.81, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[3.9, 32]} />
+          <meshStandardMaterial color="#d97706" metalness={0.7} roughness={0.3} />
         </mesh>
+        
+        {/* Stylized Lotus Pedestals (Hoa Sen) */}
+        {[-3.5, 3.5].map((x) => (
+          <group key={x} position={[x, 0.8, 0]}>
+            <mesh position={[0, 0.2, 0]}>
+              <cylinderGeometry args={[0.4, 0.1, 0.4, 8]} />
+              <meshStandardMaterial color="#ec4899" /> {/* Pink Lotus Base */}
+            </mesh>
+            <pointLight position={[0, 1, 0]} color="#fdf2f8" intensity={2} distance={5} />
+            <mesh position={[0, 0.6, 0]}>
+              <sphereGeometry args={[0.2, 8, 8]} />
+              <meshBasicMaterial color="#fdf2f8" />
+            </mesh>
+          </group>
+        ))}
       </RigidBody>
 
-      {/* Floating 3D Portrait Frame */}
-      <Float speed={2} rotationIntensity={0.1} floatIntensity={0.5} floatingRange={[0, 0.4]}>
-        <group position={[0, 4.5, 0]}>
-          {/* Main Frame */}
+      {/* Flagpole (Cờ Tổ Quốc) */}
+      <group position={[0, 0.8, -3]}>
+        <mesh castShadow position={[0, 3, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 6, 8]} />
+          <meshStandardMaterial color="#d4d4d8" metalness={0.9} />
+        </mesh>
+        {/* Red Flag */}
+        <mesh position={[0.7, 5.5, 0]} rotation={[0, 0, 0]}>
+          <planeGeometry args={[1.4, 0.9]} />
+          <meshStandardMaterial color="#ef4444" side={THREE.DoubleSide} />
+        </mesh>
+        {/* Yellow Star (Simplified) */}
+        <mesh position={[0.7, 5.5, 0.01]} rotation={[0, 0, 0]}>
+          <circleGeometry args={[0.2, 5]} />
+          <meshBasicMaterial color="#eab308" />
+        </mesh>
+      </group>
+
+      {/* Floating 3D Portrait Frame (Wooden/Traditional Vibe) */}
+      <Float speed={2} rotationIntensity={0.05} floatIntensity={0.3} floatingRange={[0, 0.2]}>
+        <group position={[0, 4.0, 0]}>
+          {/* Main Wooden Frame */}
           <mesh castShadow receiveShadow>
             <boxGeometry args={[4.2, 4.2, 0.4]} />
-            <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.1} />
+            <meshStandardMaterial color="#451a03" metalness={0.1} roughness={0.8} />
           </mesh>
           
-          {/* Inner Glowing Edge */}
+          {/* Inner Golden Edge */}
           <mesh position={[0, 0, 0.21]}>
             <boxGeometry args={[3.9, 3.9, 0.05]} />
-            <meshBasicMaterial color="#00f3ff" />
+            <meshStandardMaterial color="#f59e0b" metalness={0.8} />
           </mesh>
 
           {/* Placeholder for Photo/Avatar Screen */}
           <mesh position={[0, 0, 0.22]}>
             <planeGeometry args={[3.8, 3.8]} />
-            <meshStandardMaterial color="#020617" emissive="#020617" emissiveIntensity={0.5} roughness={0.5} />
+            <meshStandardMaterial color="#fffbeb" emissive="#fffbeb" emissiveIntensity={0.1} roughness={0.9} />
           </mesh>
 
-          {/* Holographic Text */}
+          {/* Holographic Text (Now dark/classic) */}
           <Text
             position={[0, -2.6, 0.2]}
             fontSize={0.4}
-            color="#ffffff"
+            color="#451a03"
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.02}
-            outlineColor="#00f3ff"
+            font="/fonts/Inter-Bold.ttf"
           >
-            LOC CAO
+            {t.heroTitle}
           </Text>
           <Text
             position={[0, -3.1, 0.2]}
             fontSize={0.2}
-            color="#94a3b8"
+            color="#78350f"
             anchorX="center"
             anchorY="middle"
           >
-            SOFTWARE ENGINEER
+            {t.heroSubtitle}
           </Text>
         </group>
       </Float>
 
-      {/* Kinetic Sci-Fi Rings */}
-      <group position={[0, 4.5, 0]}>
-        <mesh ref={innerRingRef} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[3.8, 0.04, 16, 64]} />
-          <meshBasicMaterial color="#38bdf8" transparent opacity={0.5} />
-        </mesh>
-        <mesh ref={outerRingRef} rotation={[Math.PI / 2.2, 0.1, 0]}>
-          <torusGeometry args={[4.6, 0.08, 16, 64]} />
-          <meshStandardMaterial color="#f59e0b" metalness={1} roughness={0.2} emissive="#f59e0b" emissiveIntensity={0.2} />
-        </mesh>
-      </group>
-
-      {/* Dramatic Spotlights */}
+      {/* Dramatic Spotlights (Warm Sunlit Colors) */}
       <SpotLight
         position={[-6, 0.5, 6]}
         angle={0.4}
         penumbra={0.5}
-        intensity={200}
-        color="#00f3ff"
-        target-position={[0, 4.5, 0]}
+        intensity={100}
+        color="#fef08a"
+        target-position={[0, 4.0, 0]}
         castShadow
       />
       <SpotLight
         position={[6, 0.5, 6]}
         angle={0.4}
         penumbra={0.5}
-        intensity={200}
+        intensity={100}
         color="#f59e0b"
-        target-position={[0, 4.5, 0]}
+        target-position={[0, 4.0, 0]}
         castShadow
       />
-      <SpotLight
-        position={[0, 0.5, -8]}
-        angle={0.5}
-        penumbra={0.5}
-        intensity={150}
-        color="#ffffff"
-        target-position={[0, 4.5, 0]}
-        castShadow
-      />
-
     </group>
   );
 };

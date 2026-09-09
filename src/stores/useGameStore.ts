@@ -31,8 +31,13 @@ export const MILESTONE_WAYPOINTS: MilestoneWaypoint[] = [
 ];
 
 export type ThemeMode = 'light' | 'dark' | 'night';
+export type Language = 'vi' | 'en';
 
 interface GameState {
+  // Localization
+  language: Language;
+  setLanguage: (lang: Language) => void;
+
   // Theme Modes: 'light' (Daylight Studio), 'dark' (Modern Dark Tech), 'night' (Cyberpunk Neon)
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
@@ -102,6 +107,12 @@ interface GameState {
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
+  language: 'vi',
+  setLanguage: (language) => {
+    sound.playClick();
+    set({ language });
+  },
+
   // Default theme is 'night' (vibrant Cyberpunk night) with instant toggle to 'dark' or 'light'
   theme: 'night',
   setTheme: (theme: ThemeMode) => {

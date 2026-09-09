@@ -1,95 +1,83 @@
 import React from 'react';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
-import { RoadNetwork } from './RoadNetwork';
-import { useGameStore } from '../../stores/useGameStore';
 
 export const Ground: React.FC = () => {
-  const theme = useGameStore((state) => state.theme);
-  const isLight = theme === 'light';
-  const isDark = theme === 'dark';
-  const isNight = theme === 'night';
-
-  const topColor = isLight ? '#f1f5f9' : isDark ? '#1e293b' : '#141c2e';
-  const bevelColor = isLight ? '#cbd5e1' : isDark ? '#0f172a' : '#070b14';
-  const rimColor = isLight ? '#0284c7' : isDark ? '#38bdf8' : '#00f3ff';
-  const gridPrimary = isLight ? '#0284c7' : isDark ? '#38bdf8' : '#00f3ff';
-  const gridSecondary = isLight ? '#94a3b8' : isDark ? '#334155' : '#1e293b';
-  const underglowColor = isLight ? '#38bdf8' : '#00f3ff';
-  const underglowOpacity = isLight ? 0.08 : isDark ? 0.18 : 0.35;
+  // Bridges configuration
+  const bridges = [0, 1, 2, 3, 4].map(i => {
+    const angle = i * (Math.PI * 2) / 5 - Math.PI / 2;
+    // Bridge spans from r=5 to r=55, length = 50
+    const length = 50;
+    const rCenter = 30; // Midpoint
+    return {
+      x: Math.cos(angle) * rCenter,
+      z: Math.sin(angle) * rCenter,
+      rotationY: -angle,
+    };
+  });
 
   return (
     <group>
-      {/* 1. Solid Physics Floor (Expanded to 180m x 240m, thick to prevent tunneling) */}
+      {/* 1. Global Water/Cloud Plane */}
+      <mesh position={[0, -5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[1000, 1000]} />
+        <meshStandardMaterial 
+          color="#0ea5e9" 
+          transparent 
+          opacity={0.8} 
+          roughness={0.1}
+          metalness={0.8}
+        />
+      </mesh>
+
+      {/* Physics Floor under everything to prevent falling forever, but much lower */}
       <RigidBody type="fixed" friction={0.4}>
-        {/* Half-height of 10.0 makes the collider 20m thick. Top surface remains at y=0 */}
-        <CuboidCollider args={[95, 10.0, 125]} position={[0, -10.0, -5]} />
+        <CuboidCollider args={[500, 2, 500]} position={[0, -8, 0]} />
       </RigidBody>
 
-      {/* 2. Expanded Floating Diorama Island Base */}
-      <group position={[0, -0.01, -5]}>
-        {/* Top Surface (Daylight vs Dark Tech vs Cyberpunk Night) */}
-        {/* The physical floor is at y=0; lower the decorative slab so it does
-            not cover road planes placed just above that surface. */}
-        <mesh receiveShadow position={[0, -0.3, 0]}>
-          <boxGeometry args={[186, 0.6, 246]} />
-          <meshStandardMaterial
-            color={topColor}
-            roughness={isLight ? 0.8 : 0.6}
-            metalness={isLight ? 0.05 : 0.25}
-          />
-        </mesh>
-
-        {/* Floating Bevel Rim Base */}
-        <mesh position={[0, -1.2, 0]}>
-          <boxGeometry args={[182, 1.8, 242]} />
-          <meshStandardMaterial
-            color={bevelColor}
-            roughness={0.9}
-            metalness={0.1}
-          />
-        </mesh>
-
-        {/* Luminous Island Perimeter Rim Strip */}
-        {[-93.1, 93.1].map((x, i) => (
-          <mesh key={`rim-x-${i}`} position={[x, 0.22, 0]}>
-            <boxGeometry args={[0.1, 0.18, 246.2]} />
-            <meshBasicMaterial color={rimColor} />
-          </mesh>
-        ))}
-        {[-123.1, 123.1].map((z, i) => (
-          <mesh key={`rim-z-${i}`} position={[0, 0.22, z]}>
-            <boxGeometry args={[186.2, 0.18, 0.1]} />
-            <meshBasicMaterial color={rimColor} />
-          </mesh>
-        ))}
-
-        {/* Floating Underglow Light */}
-        <mesh position={[0, -2.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[190, 250]} />
-          <meshBasicMaterial
-            color={underglowColor}
-            transparent
-            opacity={underglowOpacity}
-          />
-        </mesh>
-      </group>
-
-      {/* Ground Grid Pattern */}
-      <gridHelper
-        args={[186, 62, gridPrimary, gridSecondary]}
-        position={[0, 0.005, -5]}
-      />
-
-      {/* 3. High-Contrast Road Network, Street Signs & Grand Speed Circuit */}
-      <RoadNetwork />
-
-      {/* 4. Safety Colliders along the 180m x 240m perimeter */}
+      {/* 2. Central Hub Island Base (Underneath the Trống Đồng) */}
       <RigidBody type="fixed">
-        <CuboidCollider args={[1, 6, 125]} position={[-93, 3.0, -5]} />
-        <CuboidCollider args={[1, 6, 125]} position={[93, 3.0, -5]} />
-        <CuboidCollider args={[95, 6, 1]} position={[0, 3.0, -127]} />
-        <CuboidCollider args={[95, 6, 1]} position={[0, 3.0, 117]} />
+        <CuboidCollider args={[8, 4, 8]} position={[0, -4, 0]} />
+        <mesh castShadow receiveShadow position={[0, -4, 0]}>
+          <cylinderGeometry args={[8, 12, 8, 32]} />
+          <meshStandardMaterial color="#1c1917" roughness={0.9} />
+        </mesh>
+        {/* Grassy rim */}
+        <mesh receiveShadow position={[0, -0.05, 0]}>
+          <cylinderGeometry args={[8.2, 8.2, 0.2, 32]} />
+          <meshStandardMaterial color="#22c55e" roughness={0.8} />
+        </mesh>
       </RigidBody>
+
+      {/* 3. The 5 Connecting Stone Bridges */}
+      {bridges.map((bridge, index) => (
+        <group key={`bridge-${index}`} position={[bridge.x, 0, bridge.z]} rotation={[0, bridge.rotationY, 0]}>
+          <RigidBody type="fixed">
+            <CuboidCollider args={[25, 0.2, 3]} position={[0, -0.2, 0]} />
+            
+            {/* Bridge Path */}
+            <mesh castShadow receiveShadow position={[0, -0.2, 0]}>
+              <boxGeometry args={[50, 0.4, 6]} />
+              <meshStandardMaterial color="#d6d3d1" roughness={0.7} />
+            </mesh>
+
+            {/* Bridge Side Rails */}
+            <mesh castShadow position={[0, 0.2, 2.9]}>
+              <boxGeometry args={[50, 0.4, 0.2]} />
+              <meshStandardMaterial color="#78350f" roughness={0.8} />
+            </mesh>
+            <mesh castShadow position={[0, 0.2, -2.9]}>
+              <boxGeometry args={[50, 0.4, 0.2]} />
+              <meshStandardMaterial color="#78350f" roughness={0.8} />
+            </mesh>
+
+            {/* Arch underneath (purely visual) */}
+            <mesh castShadow position={[0, -2, 0]}>
+              <cylinderGeometry args={[3, 3, 5.8, 16, 1, false, 0, Math.PI]} />
+              <meshStandardMaterial color="#a8a29e" roughness={0.9} />
+            </mesh>
+          </RigidBody>
+        </group>
+      ))}
     </group>
   );
 };

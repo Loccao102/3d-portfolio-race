@@ -13,6 +13,7 @@ import { useNetworkStore } from '../../stores/useNetworkStore';
 import { getOrCreatePlayerProfile } from '../../data/playerProfile';
 import { OnlineRoster } from './OnlineRoster';
 import { ChatBox } from './ChatBox';
+import { LanguageToggle } from './LanguageToggle';
 
 export const OverlayUI: React.FC = () => {
   const setPlayerProfile = useGameStore((state) => state.setPlayerProfile);
@@ -50,6 +51,7 @@ export const OverlayUI: React.FC = () => {
   return (
     <>
       <Intro />
+      <LanguageToggle />
       <OnlineRoster />
       <ChatBox />
       <HUD />

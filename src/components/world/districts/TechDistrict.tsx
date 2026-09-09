@@ -3,127 +3,85 @@ import { useFrame } from '@react-three/fiber';
 import { RigidBody, CuboidCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { MilestoneZone } from '../../milestones/MilestoneZone';
-import { TechReactorModel } from './TechReactorModel';
+import { useGameStore } from '../../../stores/useGameStore';
+import { i18n } from '../../../data/i18n';
 import { DistrictProps } from './AboutDistrict';
 
 export const TechDistrict: React.FC<DistrictProps> = ({ position = [0, 0, 0], rotation = [0, 0, 0] }) => {
-  const gyro1Ref = useRef<THREE.Group>(null);
-  const gyro2Ref = useRef<THREE.Group>(null);
-  const coreLightRef = useRef<THREE.PointLight>(null);
-  const dataLightRef = useRef<THREE.Mesh>(null);
+  const language = useGameStore((state) => state.language);
+  const t = i18n[language].districts.tech;
+  const scrollRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
-    if (gyro1Ref.current) {
-      gyro1Ref.current.rotation.x = t * 1.5;
-      gyro1Ref.current.rotation.y = t * 0.8;
-    }
-    if (gyro2Ref.current) {
-      gyro2Ref.current.rotation.y = -t * 2.0;
-      gyro2Ref.current.rotation.z = t * 1.2;
-    }
-    if (coreLightRef.current) {
-      coreLightRef.current.intensity = 2 + Math.sin(t * 5) * 1.0;
-    }
-    if (dataLightRef.current) {
-      dataLightRef.current.position.y = -0.5 + (t % 1) * 3.0;
-      dataLightRef.current.scale.setLength(1.0 - (t % 1));
+    const time = clock.getElapsedTime();
+    if (scrollRef.current) {
+      scrollRef.current.position.y = 2.5 + Math.sin(time * 2) * 0.2;
+      scrollRef.current.rotation.y = time * 0.5;
     }
   });
 
   return (
     <group position={position} rotation={rotation}>
+      {/* Floating Island Base */}
+      <RigidBody type="fixed">
+        <CuboidCollider args={[10, 0.5, 10]} position={[0, -0.5, 0]} />
+        <mesh position={[0, -3, 0]} receiveShadow>
+          <cylinderGeometry args={[10, 2, 6, 16]} />
+          <meshStandardMaterial color="#292524" roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0, 0]} receiveShadow>
+          <cylinderGeometry args={[10.2, 10.2, 0.4, 16]} />
+          <meshStandardMaterial color="#15803d" roughness={0.8} />
+        </mesh>
+      </RigidBody>
+
+      {/* Traditional Temple structure (Khê Văn Các / Temple of Literature inspired) */}
+      <group position={[0, 0.2, -3]}>
+        {/* Base */}
+        <mesh castShadow receiveShadow position={[0, 0.4, 0]}>
+          <boxGeometry args={[6, 0.8, 6]} />
+          <meshStandardMaterial color="#d6d3d1" />
+        </mesh>
+        {/* Pillars */}
+        {[-2.5, 2.5].map((x) =>
+          [-2.5, 2.5].map((z) => (
+            <mesh key={`${x}-${z}`} castShadow position={[x, 2, z]}>
+              <cylinderGeometry args={[0.2, 0.2, 3, 8]} />
+              <meshStandardMaterial color="#78350f" />
+            </mesh>
+          ))
+        )}
+        {/* Sweeping Red Roof */}
+        <mesh castShadow position={[0, 4, 0]}>
+          <coneGeometry args={[4.5, 2.5, 4]} />
+          <meshStandardMaterial color="#b91c1c" roughness={0.7} />
+        </mesh>
+      </group>
+
+      {/* Floating Knowledge Scroll (Tech/Magic) */}
+      <mesh ref={scrollRef} position={[0, 2.5, 2]} castShadow>
+        <cylinderGeometry args={[0.3, 0.3, 1.5, 16]} />
+        <meshStandardMaterial color="#fef08a" emissive="#fef08a" emissiveIntensity={0.5} />
+      </mesh>
+      <pointLight position={[0, 2.5, 2]} color="#fef08a" intensity={2} distance={5} />
+
+      {/* Bamboo Grove */}
+      {[-6, -5, -4].map((x, i) => (
+        <mesh key={`bamboo-${i}`} position={[x, 2, -2 + i]} castShadow>
+          <cylinderGeometry args={[0.08, 0.1, 4, 6]} />
+          <meshStandardMaterial color="#4ade80" />
+        </mesh>
+      ))}
+
       {/* Interactive Milestone Trigger Zone */}
       <MilestoneZone
         id="tech"
-        position={[0, 0, 4]}
-        radius={5.5}
-        label="TECH DISTRICT"
-        sublabel="Architecture & Systems"
-        color="#f59e0b"
+        position={[0, 0.5, 6]}
+        radius={5.2}
+        label={t.title}
+        sublabel={t.subtitle}
+        color="#fef08a"
       />
-
-      {/* 1. Raised District Base Platform */}
-      <RigidBody type="fixed">
-        <CuboidCollider args={[10.5, 0.25, 8.5]} position={[0, 0.25, -4]} />
-      </RigidBody>
-      <mesh receiveShadow position={[0, 0.25, -4]}>
-        <boxGeometry args={[21, 0.5, 17]} />
-        <meshStandardMaterial color="#111726" roughness={0.6} metalness={0.4} />
-      </mesh>
-      {/* Glowing Amber Perimeter Baseboard Strip */}
-      <mesh position={[0, 0.51, 4.4]}>
-        <boxGeometry args={[20.8, 0.04, 0.08]} />
-        <meshBasicMaterial color="#f59e0b" />
-      </mesh>
-
-      {/* 2. Central High-Fidelity 3D Ion Reactor Core */}
-      <group position={[0, 0.5, -6]}>
-        {/* Hexagonal Foundation Base */}
-        <mesh castShadow position={[0, 0.5, 0]}>
-          <cylinderGeometry args={[2.8, 3.4, 1.0, 6]} />
-          <meshStandardMaterial color="#1a2234" roughness={0.3} metalness={0.85} />
-        </mesh>
-
-        {/* 3D Sci-Fi Primary Ion Drive Model */}
-        <TechReactorModel />
-      </group>
-
-      {/* 3. PostgreSQL Data Vault (Left Flank) */}
-      <group position={[-6.8, 0.5, -4]}>
-        {/* Monolith Server Tower */}
-        <mesh castShadow position={[0, 2.4, 0]}>
-          <boxGeometry args={[2.4, 4.8, 2.8]} />
-          <meshStandardMaterial color="#0b1120" roughness={0.2} metalness={0.9} />
-        </mesh>
-        {/* Server Memory Banks with Cascading Cyan LEDs */}
-        {[-1.5, -0.7, 0.1, 0.9, 1.7].map((y, idx) => (
-          <mesh key={`slot-${idx}`} position={[0, 2.4 + y, 1.41]}>
-            <boxGeometry args={[2.0, 0.28, 0.04]} />
-            <meshBasicMaterial color="#00f3ff" />
-          </mesh>
-        ))}
-        {/* Animated Data Stream Packet */}
-        <mesh ref={dataLightRef} position={[0, 2.2, 1.45]}>
-          <boxGeometry args={[0.3, 0.8, 0.06]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
-      </group>
-
-      {/* 4. Docker Container Yard (Right Flank) */}
-      <group position={[6.8, 0.5, -4]}>
-        {/* Lower Container (Ocean Blue) */}
-        <mesh castShadow position={[0, 0.9, 0]}>
-          <boxGeometry args={[2.3, 1.8, 4.6]} />
-          <meshStandardMaterial color="#0284c7" roughness={0.35} metalness={0.65} />
-        </mesh>
-        {/* Upper Stacked Container (Electric Cyan) */}
-        <mesh castShadow position={[0, 2.7, 0.4]}>
-          <boxGeometry args={[2.3, 1.8, 4.6]} />
-          <meshStandardMaterial color="#0ea5e9" roughness={0.35} metalness={0.65} />
-        </mesh>
-        {/* Hazard Yellow/Black Warning Stripe */}
-        <mesh position={[1.16, 2.7, 0.4]} rotation={[0, Math.PI / 2, 0]}>
-          <planeGeometry args={[2.8, 0.45]} />
-          <meshBasicMaterial color="#facc15" />
-        </mesh>
-      </group>
-
-      {/* 5. Overhead Tech District Hologram Marquee */}
-      <group position={[0, 7.2, -4]}>
-        <mesh>
-          <boxGeometry args={[8.6, 1.1, 0.12]} />
-          <meshStandardMaterial color="#080c16" metalness={0.9} roughness={0.2} />
-        </mesh>
-        <mesh position={[0, 0, 0.07]}>
-          <planeGeometry args={[8.3, 0.9]} />
-          <meshBasicMaterial color="#f59e0b" transparent opacity={0.25} />
-        </mesh>
-        <mesh position={[0, 0, 0.09]}>
-          <boxGeometry args={[6.2, 0.14, 0.02]} />
-          <meshBasicMaterial color="#f59e0b" />
-        </mesh>
-      </group>
     </group>
   );
 };

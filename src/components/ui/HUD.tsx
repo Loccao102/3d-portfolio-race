@@ -2,7 +2,11 @@ import React from 'react';
 import { useGameStore, ThemeMode } from '../../stores/useGameStore';
 import { Volume2, VolumeX, Activity, Sun, Moon, Sparkles } from 'lucide-react';
 
+import { i18n } from '../../data/i18n';
+
 export const HUD: React.FC = () => {
+  const language = useGameStore((state) => state.language);
+  const t = i18n[language];
   const theme = useGameStore((state) => state.theme);
   const setTheme = useGameStore((state) => state.setTheme);
   const activeMilestone = useGameStore((state) => state.activeMilestone);
@@ -180,15 +184,14 @@ export const HUD: React.FC = () => {
               isLight ? 'text-cyan-700' : 'text-cyan-400'
             }`}
           >
-            VEHICLE CONTROLS
+            {t.controlsTitle}
           </div>
-          <div><span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>W / ↑</span> : ACCELERATE</div>
-          <div><span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>S / ↓</span> : REVERSE</div>
-          <div><span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>A / D</span> : STEER</div>
-          <div><span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>SPACE</span> : BRAKE</div>
+          <div>{t.drive}</div>
           <div className="text-amber-400 font-semibold drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">
-            <span className="font-bold">SHIFT</span> : NITRO BOOST
+            {t.boost}
           </div>
+          <div>{t.brake}</div>
+          <div className="text-pink-400 mt-1">{t.emote}</div>
         </div>
 
         {/* Right Telemetry Column: Exploration + FPS Monitor */}

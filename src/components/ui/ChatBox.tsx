@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNetworkStore } from '../../stores/useNetworkStore';
 import { useGameStore } from '../../stores/useGameStore';
+import { i18n } from '../../data/i18n';
 
 export const ChatBox: React.FC = () => {
+  const language = useGameStore((state) => state.language);
+  const t = i18n[language];
   const chatMessages = useNetworkStore((state) => state.chatMessages);
   const sendChat = useNetworkStore((state) => state.sendChat);
   const remotePlayers = useNetworkStore((state) => state.remotePlayers);
@@ -60,7 +63,7 @@ export const ChatBox: React.FC = () => {
   return (
     <div className="absolute bottom-4 left-4 z-50 flex flex-col justify-end w-80 font-mono pointer-events-none">
       
-      {/* Messages Area (always visible if there are messages, fades out older ones optionally, but let's just show standard list) */}
+      {/* Messages Area */}
       <div 
         className={`flex flex-col gap-1 overflow-y-auto transition-all duration-300 ${isOpen ? 'h-64 bg-slate-900/80 backdrop-blur border border-slate-700 rounded-t p-2 pointer-events-auto' : 'h-40 p-2 pointer-events-none'}`}
         style={{
@@ -70,7 +73,7 @@ export const ChatBox: React.FC = () => {
       >
         {chatMessages.length === 0 && isOpen && (
           <div className="text-xs text-slate-500 text-center my-auto">
-            No messages yet. Say hello!
+            {t.noMessages}
           </div>
         )}
         
@@ -94,7 +97,7 @@ export const ChatBox: React.FC = () => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type message... (Esc to cancel)"
+            placeholder={t.typeMessage}
             className="w-full bg-transparent text-white text-xs placeholder-slate-500 outline-none"
             maxLength={120}
             // Vital: prevent spacebar/WASD from moving the car while typing
@@ -104,7 +107,7 @@ export const ChatBox: React.FC = () => {
         </form>
       ) : (
         <div className="text-[10px] text-slate-400/70 p-2 drop-shadow-md pointer-events-none">
-          Press <kbd className="border border-slate-600 rounded px-1 bg-slate-800/50">Enter</kbd> to chat
+          {t.pressEnterToChat}
         </div>
       )}
     </div>
