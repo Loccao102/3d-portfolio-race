@@ -1,12 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import {
-  RigidBody,
-  CuboidCollider,
-  RapierRigidBody,
-  useAfterPhysicsStep,
-  useBeforePhysicsStep,
-} from '@react-three/rapier';
+import { RigidBody, CuboidCollider, RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useVehicleControls } from '../../hooks/useVehicleControls';
 import { useGameStore, MILESTONE_WAYPOINTS } from '../../stores/useGameStore';
@@ -14,13 +8,6 @@ import { VehicleEffects } from './VehicleEffects';
 import { FerrariModel } from './FerrariModel';
 import { ContactShadows } from '@react-three/drei';
 import { sound } from '../../lib/soundEngine';
-import {
-  createVehicleControllerState,
-  getVehicleHeading,
-  getVehicleForwardSpeed,
-  stepVehicleController,
-  VEHICLE_FIXED_TIMESTEP,
-} from './LocalPlayerController';
 import { LOCAL_VEHICLE_TYPE } from './localPhysics';
 
 interface VehicleProps {
@@ -42,13 +29,11 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
     const targetWaypointId = useGameStore((state) => state.targetWaypoint);
     const tickRaceTimer = useGameStore((state) => state.tickRaceTimer);
 
-    // Controller state is advanced by Rapier's fixed-step callbacks. The
-    // visual model reads these refs each render frame without driving physics.
+    // Arcade Kinematic States
     const speedRef = useRef(0);
     const headingRef = useRef(0);
     const steerAngleRef = useRef(0);
     const posSyncCounter = useRef(0);
-    const controllerStateRef = useRef(createVehicleControllerState());
 
     const [vehicleFX, setVehicleFX] = useState({
       speed: 0,
@@ -57,38 +42,137 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       isReversing: false,
     });
 
-    useBeforePhysicsStep(() => {
-      const body = internalRef.current;
-      if (!body) return;
-      const controls = getControls();
-      stepVehicleController(body, controls, controllerStateRef.current, VEHICLE_FIXED_TIMESTEP);
-      tickRaceTimer(VEHICLE_FIXED_TIMESTEP);
-    });
+    // Tuned Realistic Arcade Physics Parameters with Nitro Boost
+    const BASE_MAX_SPEED = 24.0;
+    const BOOST_MAX_SPEED = 36.0;
+    const MAX_REVERSE_SPEED = 8.5; // Realistic lower top speed in reverse
+    const BASE_ACCEL = 25.0;
+    const BOOST_ACCEL = 48.0;     // Instant acceleration burst during Nitro
+    const REVERSE_ACCEL = 12.0;   // Progressive, gentle reverse acceleration
+    const FORWARD_TURN_SPEED = 2.8;
+    const REVERSE_TURN_SPEED = 2.2; // Smooth caster steering in reverse
 
-    useAfterPhysicsStep(() => {
-      const body = internalRef.current;
+    useFrame((_, delta) => {
+      const body = (forwardedRef as React.RefObject<RapierRigidBody | null>)?.current || internalRef.current;
       if (!body) return;
+
       const controls = getControls();
-      const state = controllerStateRef.current;
-      state.heading = getVehicleHeading(body);
-      const currentSpeed = getVehicleForwardSpeed(body, state.heading);
+      const clampedDelta = Math.min(delta, 0.05);
+
+      // Tick global race timer if race is active
+      tickRaceTimer(clampedDelta);
+
+      // 1. Throttle / Acceleration & Realistic Reverse Dynamics (with Nitro Boost)
       const isBoosting = controls.boost && controls.forward > 0;
-      const isReversing = currentSpeed < -0.1;
+      const maxSpeed = isBoosting ? BOOST_MAX_SPEED : BASE_MAX_SPEED;
+      const currentAccel = isBoosting ? BOOST_ACCEL : BASE_ACCEL;
 
-      speedRef.current = currentSpeed;
-      headingRef.current = state.heading;
-      steerAngleRef.current = state.steerAngle;
+      if (controls.forward > 0) {
+        // Forward drive
+        speedRef.current = Math.min(speedRef.current + currentAccel * clampedDelta, maxSpeed);
+      } else if (controls.forward < 0) {
+        // Progressive Reverse drive
+        speedRef.current = Math.max(speedRef.current - REVERSE_ACCEL * clampedDelta, -MAX_REVERSE_SPEED);
+      } else {
+        // Natural coasting rolling friction
+        speedRef.current *= Math.pow(0.38, clampedDelta);
+        if (Math.abs(speedRef.current) < 0.05) speedRef.current = 0;
+      }
+
+      // 2. Braking
+      if (controls.brake) {
+        speedRef.current *= Math.pow(0.015, clampedDelta);
+      }
+
+      const currentSpeed = speedRef.current;
+      const isReversing = currentSpeed < -0.1 || controls.forward < 0;
+
+      // 3. Responsive Steering Mechanics (Works from standstill, low speed & high speed)
+      if (controls.turn !== 0) {
+        if (currentSpeed >= 0) {
+          // Moving forward: minimum authority 0.45 ensures prompt steering even from standstill
+          const steerAuthority = Math.min(1.0, Math.max(0.45, currentSpeed / 2.5));
+          headingRef.current += -controls.turn * FORWARD_TURN_SPEED * steerAuthority * clampedDelta;
+        } else {
+          // Moving in reverse: natural reverse turning physics
+          const reverseAuthority = Math.min(1.0, Math.max(0.45, Math.abs(currentSpeed) / 1.5));
+          headingRef.current += controls.turn * REVERSE_TURN_SPEED * reverseAuthority * clampedDelta;
+        }
+      }
+
+      // Front wheel steer angle calculation
+      const targetSteerAngle = -controls.turn * 0.45;
+      steerAngleRef.current = THREE.MathUtils.lerp(steerAngleRef.current, targetSteerAngle, 0.25);
+
+      const heading = headingRef.current;
+
+      // 4. Compute Velocity Vector & Apply to Rapier
+      const targetVx = -Math.sin(heading) * currentSpeed;
+      const targetVz = -Math.cos(heading) * currentSpeed;
+
+      const currentLinvel = body.linvel();
+      body.setLinvel({ x: targetVx, y: Math.max(-20, currentLinvel.y), z: targetVz }, true);
+
+      // Direct, responsive yaw heading rotation
+      const halfAngle = heading / 2;
+      body.setRotation({ x: 0, y: Math.sin(halfAngle), z: 0, w: Math.cos(halfAngle) }, true);
+
+      // 5. Sound Engine Telemetry
       sound.updateEngineSpeed(Math.abs(currentSpeed));
 
+      // 6. Visual Chassis Roll & Pitch Animation
+      if (chassisMeshRef.current) {
+        const speedRatio = Math.min(1.0, Math.abs(currentSpeed) / 10.0);
+        const targetRoll = -controls.turn * speedRatio * (currentSpeed >= 0 ? 0.14 : -0.1);
+        const targetPitch = currentSpeed >= 0 ? controls.forward * 0.05 : -0.04;
+
+        chassisMeshRef.current.rotation.z = THREE.MathUtils.lerp(
+          chassisMeshRef.current.rotation.z,
+          targetRoll,
+          0.15
+        );
+        chassisMeshRef.current.rotation.x = THREE.MathUtils.lerp(
+          chassisMeshRef.current.rotation.x,
+          targetPitch,
+          0.15
+        );
+      }
+
+      // 7. Visual Thruster Flame Intensity (Amplified during Nitro Boost)
+      if (thrusterRef.current) {
+        const isDrivingForward = controls.forward > 0 && currentSpeed > 0;
+        const targetScale = isBoosting
+          ? 2.4 + Math.random() * 0.8
+          : isDrivingForward
+          ? 1.0 + Math.random() * 0.4
+          : 0.2;
+        thrusterRef.current.scale.set(isBoosting ? 1.4 : 1, isBoosting ? 1.4 : 1, targetScale);
+      }
+
+      // 8. Sync Vehicle Coordinates to MiniMap & Speedometer Store (every 4 frames)
       posSyncCounter.current += 1;
       if (posSyncCounter.current >= 4) {
         posSyncCounter.current = 0;
         const translation = body.translation();
-        setVehiclePos({ x: translation.x, z: translation.z, heading: state.heading });
+        setVehiclePos({ x: translation.x, z: translation.z, heading });
+        // km/h = m/s × 3.6; clamp to 0
         setVehicleSpeed(Math.max(0, Math.round(Math.abs(currentSpeed) * 3.6)));
         setIsBoosting(isBoosting);
       }
 
+      // 9. 3D Waypoint Compass Arrow pointing towards selected milestone
+      if (waypointArrowRef.current) {
+        const currentPos = body.translation();
+        const targetWP = MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypointId) || MILESTONE_WAYPOINTS[0];
+        const dx = targetWP.x - currentPos.x;
+        const dz = targetWP.z - currentPos.z;
+        // Transform direction vector into vehicle's local frame
+        const localRight = dx * Math.cos(heading) - dz * Math.sin(heading);
+        const localForward = -dx * Math.sin(heading) - dz * Math.cos(heading);
+        waypointArrowRef.current.rotation.y = -Math.atan2(localRight, localForward);
+      }
+
+      // 10. State Sync for Lighting & Particles
       if (
         Math.abs(vehicleFX.speed - Math.abs(currentSpeed)) > 0.8 ||
         (controls.forward > 0) !== vehicleFX.isAccelerating ||
@@ -104,45 +188,12 @@ export const Vehicle = React.forwardRef<RapierRigidBody, VehicleProps>(
       }
     });
 
-    useFrame(() => {
-      const body = internalRef.current;
-      if (!body) return;
-      const controls = getControls();
-      const currentSpeed = getVehicleForwardSpeed(body, controllerStateRef.current.heading);
-      const heading = controllerStateRef.current.heading;
-
-      if (chassisMeshRef.current) {
-        const speedRatio = Math.min(1.0, Math.abs(currentSpeed) / 10.0);
-        const targetRoll = -controls.turn * speedRatio * (currentSpeed >= 0 ? 0.14 : -0.1);
-        const targetPitch = currentSpeed >= 0 ? controls.forward * 0.05 : -0.04;
-        chassisMeshRef.current.rotation.z = THREE.MathUtils.lerp(chassisMeshRef.current.rotation.z, targetRoll, 0.15);
-        chassisMeshRef.current.rotation.x = THREE.MathUtils.lerp(chassisMeshRef.current.rotation.x, targetPitch, 0.15);
-      }
-
-      if (thrusterRef.current) {
-        const isBoosting = controls.boost && controls.forward > 0;
-        const isDrivingForward = controls.forward > 0 && currentSpeed > 0;
-        const targetScale = isBoosting ? 2.4 + Math.random() * 0.8 : isDrivingForward ? 1.0 + Math.random() * 0.4 : 0.2;
-        thrusterRef.current.scale.set(isBoosting ? 1.4 : 1, isBoosting ? 1.4 : 1, targetScale);
-      }
-
-      if (waypointArrowRef.current) {
-        const currentPos = body.translation();
-        const targetWP = MILESTONE_WAYPOINTS.find((w) => w.id === targetWaypointId) || MILESTONE_WAYPOINTS[0];
-        const dx = targetWP.x - currentPos.x;
-        const dz = targetWP.z - currentPos.z;
-        const localRight = dx * Math.cos(heading) - dz * Math.sin(heading);
-        const localForward = -dx * Math.sin(heading) - dz * Math.cos(heading);
-        waypointArrowRef.current.rotation.y = -Math.atan2(localRight, localForward);
-      }
-    });
-
     return (
       <RigidBody
         ref={(node) => {
-          internalRef.current = node;
+          (internalRef as any).current = node;
           if (typeof forwardedRef === 'function') forwardedRef(node);
-          else if (forwardedRef) forwardedRef.current = node;
+          else if (forwardedRef) (forwardedRef as any).current = node;
         }}
         type="dynamic"
         colliders={false}
