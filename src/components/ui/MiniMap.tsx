@@ -11,6 +11,9 @@ export const MiniMap: React.FC = () => {
   const setQuickViewTab = useGameStore((state) => state.setQuickViewTab);
   const setQuickViewOpen = useGameStore((state) => state.setQuickViewOpen);
   const theme = useGameStore((state) => state.theme);
+  const isZenMode = useGameStore((state) => state.isZenMode);
+
+  if (isZenMode) return null;
 
   const isLight = theme === 'light';
   const isNight = theme === 'night';

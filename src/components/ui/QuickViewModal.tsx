@@ -3,8 +3,11 @@ import { useGameStore } from '../../stores/useGameStore';
 import { developerData } from '../../data/developer';
 import { projectsData } from '../../data/projects';
 import { X, ExternalLink, Github, Mail, Linkedin, Server, CheckCircle2 } from 'lucide-react';
+import { i18n } from '../../data/i18n';
 
 export const QuickViewModal: React.FC = () => {
+  const language = useGameStore((state) => state.language);
+  const t = i18n[language];
   const isQuickViewOpen = useGameStore((state) => state.isQuickViewOpen);
   const setQuickViewOpen = useGameStore((state) => state.setQuickViewOpen);
   const quickViewTab = useGameStore((state) => state.quickViewTab);
@@ -54,7 +57,7 @@ export const QuickViewModal: React.FC = () => {
             <h2 className={`text-sm font-bold tracking-widest uppercase ${
               isLight ? 'text-cyan-800' : isNight ? 'text-cyan-300 drop-shadow-[0_0_8px_rgba(0,243,255,0.7)]' : 'text-cyan-400'
             }`}>
-              INDEX // RECRUITER QUICK VIEW
+              INDEX // {t.quickViewBtn}
             </h2>
             <p className={`text-xs ${subText}`}>{developerData.name} — {developerData.role}</p>
           </div>
@@ -73,10 +76,10 @@ export const QuickViewModal: React.FC = () => {
         {/* Tab Navigation */}
         <div className={`flex border-b overflow-x-auto text-xs ${tabStripBg}`}>
           {[
-            { id: 'about', label: '1. ABOUT & BIO' },
-            { id: 'projects', label: '2. FEATURED PROJECTS' },
-            { id: 'tech', label: '3. TECH STACK' },
-            { id: 'contact', label: '4. CONTACT & LINKS' },
+            { id: 'about', label: `1. ${t.navAbout}` },
+            { id: 'projects', label: `2. ${t.navProjects}` },
+            { id: 'tech', label: `3. ${t.navTech}` },
+            { id: 'contact', label: `4. ${t.navContact}` },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -121,7 +124,7 @@ export const QuickViewModal: React.FC = () => {
               {/* Career Timeline */}
               <div className={`pt-4 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isLight ? 'text-cyan-800' : 'text-cyan-400'}`}>
-                  CAREER EXPERIENCE & TRACK RECORD
+                  {t.careerTimeline}
                 </h4>
                 <div className="space-y-3">
                   {developerData.experience.map((exp, i) => (
@@ -146,7 +149,7 @@ export const QuickViewModal: React.FC = () => {
 
               <div className={`pt-4 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isLight ? 'text-cyan-800' : 'text-cyan-400'}`}>
-                  PRIMARY TECHNICAL FOCUS
+                  {t.primaryFocus}
                 </h4>
                 <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 text-xs ${bodyText}`}>
                   {developerData.focus.map((f, i) => (
@@ -182,13 +185,13 @@ export const QuickViewModal: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className={`text-[11px] font-semibold uppercase block mb-1 ${isLight ? 'text-red-700' : 'text-red-400'}`}>
-                        PROBLEM:
+                        {t.problemLabel}
                       </span>
                       <p className={subText}>{project.problem}</p>
                     </div>
                     <div>
                       <span className={`text-[11px] font-semibold uppercase block mb-1 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
-                        SOLUTION:
+                        {t.solutionLabel}
                       </span>
                       <p className={bodyText}>{project.solution}</p>
                     </div>
@@ -197,7 +200,7 @@ export const QuickViewModal: React.FC = () => {
                   {/* Impact Results */}
                   <div className={`p-2.5 ${isLight ? 'bg-slate-100 border border-slate-200' : isNight ? 'bg-slate-900/60 border border-emerald-500/30' : 'bg-slate-900/60 border border-slate-800/80'}`}>
                     <span className={`text-[10px] uppercase tracking-wider block mb-1 ${subText}`}>
-                      KEY RESULTS:
+                      {t.resultsLabel}
                     </span>
                     <ul className={`space-y-1 text-xs ${bodyText}`}>
                       {project.results.map((res, rIdx) => (

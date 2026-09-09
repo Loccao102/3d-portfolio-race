@@ -1,8 +1,11 @@
 import React from 'react';
 import { useGameStore } from '../../stores/useGameStore';
 import { Timer, Trophy, Flag, ShieldCheck } from 'lucide-react';
+import { i18n } from '../../data/i18n';
 
 export const RaceHUD: React.FC = () => {
+  const language = useGameStore((state) => state.language);
+  const t = i18n[language];
   const isRacing = useGameStore((state) => state.isRacing);
   const currentLapTime = useGameStore((state) => state.currentLapTime);
   const bestLapTime = useGameStore((state) => state.bestLapTime);
@@ -13,6 +16,7 @@ export const RaceHUD: React.FC = () => {
   const theme = useGameStore((state) => state.theme);
   const vehicleSpeed = useGameStore((state) => state.vehicleSpeed);
   const isBoosting = useGameStore((state) => state.isBoosting);
+  const isZenMode = useGameStore((state) => state.isZenMode);
 
   const isLight = theme === 'light';
   const isNight = theme === 'night';
@@ -46,30 +50,32 @@ export const RaceHUD: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Top-Left Race Circuit Telemetry (Visible when near or active in race) */}
-      <div className="absolute top-20 left-4 md:left-6 flex flex-col gap-2">
-        {/* Pilot Identity Badge */}
-        <div className={`pointer-events-auto p-2.5 border backdrop-blur-md flex items-center gap-2.5 text-xs ${
-          isLight
-            ? 'bg-white/90 border-slate-300 shadow-md text-slate-800'
-            : isNight
-            ? 'bg-slate-950/90 border-cyan-500/40 shadow-[0_0_15px_rgba(0,243,255,0.2)] text-slate-200'
-            : 'bg-slate-950/85 border-slate-800 text-slate-200'
-        }`}>
-          <span
-            className="w-3 h-3 rounded-full border border-white shadow-[0_0_8px]"
-            style={{ backgroundColor: playerProfile.accentColor, borderColor: playerProfile.accentColor }}
-          />
-          <div className="flex flex-col">
-            <span className={`text-[10px] tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>CALLSIGN</span>
-            <span className={`font-bold tracking-wider ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{playerProfile.name}</span>
+      {/* 2. Top-Left Race Circuit Telemetry */}
+      <div className={`absolute ${isZenMode ? 'top-4 left-4' : 'top-20 left-4 md:left-6'} flex flex-col gap-2`}>
+        {/* Pilot Identity Badge (hidden in Zen Mode) */}
+        {!isZenMode && (
+          <div className={`pointer-events-auto p-2.5 border backdrop-blur-md flex items-center gap-2.5 text-xs ${
+            isLight
+              ? 'bg-white/90 border-slate-300 shadow-md text-slate-800'
+              : isNight
+              ? 'bg-slate-950/90 border-cyan-500/40 shadow-[0_0_15px_rgba(0,243,255,0.2)] text-slate-200'
+              : 'bg-slate-950/85 border-slate-800 text-slate-200'
+          }`}>
+            <span
+              className="w-3 h-3 rounded-full border border-white shadow-[0_0_8px]"
+              style={{ backgroundColor: playerProfile.accentColor, borderColor: playerProfile.accentColor }}
+            />
+            <div className="flex flex-col">
+              <span className={`text-[10px] tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{t.callsign}</span>
+              <span className={`font-bold tracking-wider ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{playerProfile.name}</span>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Digital Speedometer */}
+        {/* Digital Speedometer (Clean minimal view) */}
         <div className={`pointer-events-auto px-3 py-2 border backdrop-blur-md text-right ${panelBg}`}>
           <div className={`text-[9px] tracking-widest mb-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            VELOCITY
+            {t.speed}
           </div>
           <div className="flex items-baseline justify-end gap-1">
             <span
@@ -83,7 +89,7 @@ export const RaceHUD: React.FC = () => {
             >
               {vehicleSpeed}
             </span>
-            <span className={`text-[9px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>km/h</span>
+            <span className={`text-[9px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{t.kmh}</span>
           </div>
           {isBoosting && (
             <div className="text-[9px] font-bold tracking-widest text-amber-400 animate-pulse drop-shadow-[0_0_6px_rgba(245,158,11,0.6)] mt-0.5">
@@ -92,8 +98,8 @@ export const RaceHUD: React.FC = () => {
           )}
         </div>
 
-        {/* Live Race Timer Panel */}
-        {isRacing && (
+        {/* Live Race Timer Panel (hidden in Zen Mode) */}
+        {isRacing && !isZenMode && (
           <div className={`pointer-events-auto p-3 border backdrop-blur-md space-y-1.5 text-xs ${panelBg}`}>
             <div className={`flex items-center justify-between font-bold border-b pb-1 ${
               isLight
@@ -104,15 +110,15 @@ export const RaceHUD: React.FC = () => {
             }`}>
               <span className="flex items-center gap-1.5">
                 <Flag className="w-3.5 h-3.5 text-cyan-400" />
-                <span>SPEED CIRCUIT</span>
+                <span>{t.speedCircuit}</span>
               </span>
-              <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>LAP {currentLap}</span>
+              <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{t.lap} {currentLap}</span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
               <span className={`flex items-center gap-1 text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 <Timer className="w-3 h-3 text-cyan-500" />
-                <span>TIME:</span>
+                <span>{t.lapTime}:</span>
               </span>
               <span className={`font-bold text-sm tracking-wider ${isLight ? 'text-cyan-700' : 'text-cyan-300'}`}>
                 {formatTime(currentLapTime)}
@@ -122,7 +128,7 @@ export const RaceHUD: React.FC = () => {
             <div className="flex items-center justify-between gap-4">
               <span className={`flex items-center gap-1 text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 <Trophy className="w-3 h-3 text-amber-500" />
-                <span>RECORD:</span>
+                <span>{t.bestRecord}:</span>
               </span>
               <span className={`font-bold tracking-wider ${isLight ? 'text-amber-700' : 'text-amber-300'}`}>
                 {bestLapTime ? formatTime(bestLapTime) : '--:--.--'}
@@ -132,7 +138,7 @@ export const RaceHUD: React.FC = () => {
             <div className={`flex items-center justify-between gap-4 pt-0.5 border-t ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
               <span className={`flex items-center gap-1 text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                <span>SECTORS:</span>
+                <span>{t.sectors}:</span>
               </span>
               <span className={`font-bold tracking-wider ${isLight ? 'text-emerald-700' : 'text-emerald-300'}`}>
                 {checkpointsPassed} / 3

@@ -3,8 +3,11 @@ import { useGameStore } from '../../stores/useGameStore';
 import { developerData } from '../../data/developer';
 import { projectsData } from '../../data/projects';
 import { X, ExternalLink, Github, Mail, Linkedin, Terminal, Sparkles, Server, CheckCircle2 } from 'lucide-react';
+import { i18n } from '../../data/i18n';
 
 export const MilestoneCard: React.FC = () => {
+  const language = useGameStore((state) => state.language);
+  const t = i18n[language];
   const activeMilestone = useGameStore((state) => state.activeMilestone);
   const isCardOpen = useGameStore((state) => state.isCardOpen);
   const setCardOpen = useGameStore((state) => state.setCardOpen);
@@ -89,7 +92,7 @@ export const MilestoneCard: React.FC = () => {
           <div className="space-y-4">
             <div className={`border-l-2 ${isLight ? 'border-cyan-600' : 'border-cyan-400'} pl-3`}>
               <h3 className={`font-bold text-sm tracking-wider uppercase ${isLight ? 'text-cyan-800' : 'text-cyan-400'}`}>
-                WHO IS CAO TIEN LOC?
+                {t.whoIsLoc}
               </h3>
               <p className={`text-xs ${subText}`}>{developerData.role}</p>
             </div>
@@ -113,7 +116,7 @@ export const MilestoneCard: React.FC = () => {
             {/* Career Timeline */}
             <div className="pt-2">
               <h4 className={`text-[11px] font-semibold uppercase tracking-wider mb-2 ${subText}`}>
-                CAREER TIMELINE
+                {t.careerTimeline}
               </h4>
               <div className="space-y-2.5">
                 {developerData.experience.map((exp, i) => (
@@ -138,7 +141,7 @@ export const MilestoneCard: React.FC = () => {
 
             <div className="pt-2">
               <h4 className={`text-[11px] font-semibold uppercase tracking-wider mb-2 ${subText}`}>
-                CURRENT ENGINEERING FOCUS
+                {t.primaryFocus}
               </h4>
               <ul className={`space-y-1.5 text-xs ${bodyText}`}>
                 {developerData.focus.map((item, i) => (
@@ -151,8 +154,8 @@ export const MilestoneCard: React.FC = () => {
             </div>
 
             <div className={`pt-2 flex items-center justify-between text-[11px] border-t ${isLight ? 'border-slate-200 text-slate-600' : 'border-slate-800 text-slate-400'}`}>
-              <span>LOCATION: {developerData.location}</span>
-              <span className={isLight ? 'text-cyan-700 font-bold' : 'text-cyan-400 font-medium'}>AVAILABLE FOR HIRE</span>
+              <span>{t.locationLabel}</span>
+              <span className={isLight ? 'text-cyan-700 font-bold' : 'text-cyan-400 font-medium'}>{t.availableLabel}</span>
             </div>
           </div>
         );
@@ -233,14 +236,14 @@ export const MilestoneCard: React.FC = () => {
             <div className="space-y-2.5 text-xs">
               <div>
                 <span className={`font-semibold uppercase text-[11px] block mb-0.5 ${isLight ? 'text-red-700' : 'text-red-400'}`}>
-                  THE PROBLEM:
+                  {t.problemLabel}
                 </span>
                 <p className={`leading-relaxed ${subText}`}>{activeProject.problem}</p>
               </div>
 
               <div>
                 <span className={`font-semibold uppercase text-[11px] block mb-0.5 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
-                  ENGINEERING SOLUTION:
+                  {t.solutionLabel}
                 </span>
                 <p className={`leading-relaxed ${bodyText}`}>{activeProject.solution}</p>
               </div>
@@ -249,7 +252,7 @@ export const MilestoneCard: React.FC = () => {
             {/* Key Engineering Decisions */}
             <div className={`p-2.5 ${cardBox}`}>
               <span className={`font-semibold uppercase text-[10px] tracking-wider block mb-1.5 ${subText}`}>
-                KEY TECHNICAL DECISIONS
+                {t.decisionsLabel}
               </span>
               <ul className={`space-y-1 text-xs ${bodyText}`}>
                 {activeProject.decisions.map((dec, i) => (
@@ -449,7 +452,7 @@ export const MilestoneCard: React.FC = () => {
         <span className={`text-[11px] font-bold tracking-widest uppercase ${
           isLight ? 'text-cyan-800' : isNight ? 'text-cyan-300 drop-shadow-[0_0_8px_rgba(0,243,255,0.7)]' : 'text-cyan-400'
         }`}>
-          DISTRICT INTEL // [{displayedMilestone.toUpperCase()}]
+          {(t.districts as any)[displayedMilestone]?.title || displayedMilestone.toUpperCase()} // {(t.districts as any)[displayedMilestone]?.subtitle || 'SYSTEM INTEL'}
         </span>
         <button
           onClick={() => setCardOpen(false)}
@@ -471,12 +474,12 @@ export const MilestoneCard: React.FC = () => {
 
       {/* Bottom Dismiss / Keep Driving Bar */}
       <div className={`px-5 py-3 border-t flex justify-between items-center text-[11px] ${footerBg}`}>
-        <span className={subText}>[E] / [ESC] TO CLOSE</span>
+        <span className={subText}>{t.closeHint}</span>
         <button
           onClick={() => setCardOpen(false)}
           className={`px-3 py-1.5 transition-colors uppercase tracking-wider font-semibold ${primaryBtn}`}
         >
-          Continue Exploring
+          {t.continueDriving}
         </button>
       </div>
     </aside>

@@ -200,6 +200,135 @@ class SoundEngine {
     osc.start();
     osc.stop(this.ctx.currentTime + 0.04);
   }
+
+  // ==========================================
+  // PROCEDURAL LO-FI CHILL RADIO SYNTHESIZER
+  // Zero external MP3 downloads - warm analog electric piano chords
+  // ==========================================
+  private lofiTimer: any = null;
+  private lofiMasterGain: GainNode | null = null;
+  private lofiFilter: BiquadFilterNode | null = null;
+  private isLofiRunning: boolean = false;
+  private chordIndex: number = 0;
+
+  // Warm Rhodes chord progression: Dm9 -> G13 -> Cmaj9 -> Am9
+  private lofiChords = [
+    [146.83, 174.61, 220.00, 261.63, 329.63], // Dm9
+    [98.00, 174.61, 246.94, 329.63],          // G13
+    [130.81, 164.81, 196.00, 246.94, 293.66], // Cmaj9
+    [110.00, 164.81, 196.00, 246.94, 329.63], // Am9
+  ];
+
+  public startLofi() {
+    if (this.isLofiRunning) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    this.isLofiRunning = true;
+    this.chordIndex = 0;
+
+    // Master bus with vintage lowpass filter (460Hz) and gentle warmth
+    this.lofiFilter = this.ctx.createBiquadFilter();
+    this.lofiFilter.type = 'lowpass';
+    this.lofiFilter.frequency.setValueAtTime(460, this.ctx.currentTime);
+    this.lofiFilter.Q.setValueAtTime(1.2, this.ctx.currentTime);
+
+    this.lofiMasterGain = this.ctx.createGain();
+    this.lofiMasterGain.gain.setValueAtTime(0.09, this.ctx.currentTime);
+
+    this.lofiFilter.connect(this.lofiMasterGain);
+    this.lofiMasterGain.connect(this.ctx.destination);
+
+    // Play first chord immediately
+    this.playNextLofiChord();
+
+    // Loop chords every 3.2s
+    this.lofiTimer = setInterval(() => {
+      if (this.isLofiRunning) {
+        this.playNextLofiChord();
+      }
+    }, 3200);
+  }
+
+  private playNextLofiChord() {
+    if (!this.ctx || !this.isLofiRunning || !this.lofiFilter) return;
+
+    const chord = this.lofiChords[this.chordIndex % this.lofiChords.length];
+    this.chordIndex++;
+
+    const now = this.ctx.currentTime;
+
+    // Subtle tape wow & flutter LFO for vintage warmth
+    const lfo = this.ctx.createOscillator();
+    const lfoGain = this.ctx.createGain();
+    lfo.frequency.setValueAtTime(1.6, now); // 1.6 Hz slow tape wobble
+    lfoGain.gain.setValueAtTime(1.8, now);  // slight pitch deviation
+    lfo.connect(lfoGain);
+
+    chord.forEach((freq, noteIdx) => {
+      if (!this.ctx || !this.lofiFilter) return;
+      const osc = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator(); // detuned sub for stereo width
+      const noteGain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc2.type = 'sine';
+
+      // Slight humanized timing stagger
+      const noteStart = now + noteIdx * 0.035;
+
+      osc.frequency.setValueAtTime(freq, noteStart);
+      osc2.frequency.setValueAtTime(freq * 1.002, noteStart); // warm detune
+
+      lfoGain.connect(osc.frequency);
+      lfoGain.connect(osc2.frequency);
+
+      // Warm vintage Rhodes envelope: fast soft attack, smooth long sustain and tail
+      noteGain.gain.setValueAtTime(0.0001, noteStart);
+      noteGain.gain.exponentialRampToValueAtTime(0.05, noteStart + 0.08);
+      noteGain.gain.exponentialRampToValueAtTime(0.02, noteStart + 1.2);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 3.1);
+
+      osc.connect(noteGain);
+      osc2.connect(noteGain);
+      noteGain.connect(this.lofiFilter);
+
+      osc.start(noteStart);
+      osc2.start(noteStart);
+      osc.stop(noteStart + 3.1);
+      osc2.stop(noteStart + 3.1);
+    });
+
+    lfo.start(now);
+    lfo.stop(now + 3.2);
+  }
+
+  public stopLofi() {
+    this.isLofiRunning = false;
+    if (this.lofiTimer) {
+      clearInterval(this.lofiTimer);
+      this.lofiTimer = null;
+    }
+    if (this.lofiMasterGain && this.ctx) {
+      try {
+        this.lofiMasterGain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.4);
+      } catch (e) {}
+    }
+  }
+
+  public toggleLofi(): boolean {
+    if (this.isLofiRunning) {
+      this.stopLofi();
+      return false;
+    } else {
+      this.startLofi();
+      return true;
+    }
+  }
+
+  public isLofiActive(): boolean {
+    return this.isLofiRunning;
+  }
 }
 
 export const sound = new SoundEngine();

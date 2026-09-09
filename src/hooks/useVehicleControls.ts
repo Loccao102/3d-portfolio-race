@@ -31,6 +31,7 @@ export function useVehicleControls() {
   const joystickInput = useGameStore((state) => state.joystickInput);
   const mobileActions = useGameStore((state) => state.mobileActions);
   const setIntroFinished = useGameStore((state) => state.setIntroFinished);
+  const toggleZenMode = useGameStore((state) => state.toggleZenMode);
 
   useEffect(() => {
     const resetKeyboard = () => {
@@ -92,6 +93,9 @@ export function useVehicleControls() {
           break;
         case 'KeyR':
           keyboardState.current.reset = true;
+          break;
+        case 'KeyH':
+          toggleZenMode();
           break;
       }
     };

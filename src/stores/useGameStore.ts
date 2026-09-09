@@ -90,6 +90,9 @@ interface GameState {
   setQuickViewOpen: (open: boolean) => void;
   isMiniMapExpanded: boolean;
   toggleMiniMap: () => void;
+  isZenMode: boolean;
+  toggleZenMode: () => void;
+  setZenMode: (zen: boolean) => void;
   quickViewTab: 'about' | 'tech' | 'projects' | 'experiments' | 'contact';
   setQuickViewTab: (tab: 'about' | 'tech' | 'projects' | 'experiments' | 'contact') => void;
 
@@ -104,6 +107,8 @@ interface GameState {
   // Settings & Audio
   soundEnabled: boolean;
   toggleSound: () => void;
+  lofiEnabled: boolean;
+  toggleLofi: () => void;
   quality: 'high' | 'low';
   setQuality: (quality: 'high' | 'low') => void;
 
@@ -271,6 +276,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
   isMiniMapExpanded: true,
   toggleMiniMap: () => set((state) => ({ isMiniMapExpanded: !state.isMiniMapExpanded })),
+  isZenMode: false,
+  toggleZenMode: () => {
+    sound.playClick();
+    set((state) => ({ isZenMode: !state.isZenMode }));
+  },
+  setZenMode: (zen) => set({ isZenMode: zen }),
   quickViewTab: 'about',
   setQuickViewTab: (tab) => {
     sound.playClick();
@@ -293,6 +304,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       const next = !state.soundEnabled;
       sound.setEnabled(next);
       return { soundEnabled: next };
+    }),
+  lofiEnabled: false,
+  toggleLofi: () =>
+    set((state) => {
+      const next = sound.toggleLofi();
+      return { lofiEnabled: next };
     }),
   quality: typeof window !== 'undefined' ? (() => {
     try {
