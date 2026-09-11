@@ -15,7 +15,9 @@ app/page.tsx
           -> world/WorldPhysics
               -> entities/player/LocalPlayer
                   -> entities/player/PlayerVehicle
+              -> systems/network/RemotePlayers
           -> systems/camera/FollowCameraSystem
+          -> systems/network/NetworkSystem
           -> systems/performance/PerformanceSystem
 ```
 
@@ -45,7 +47,7 @@ src/game/
 
 ## Migration status
 
-Phase 2 is moving implementation ownership into the canonical folders while leaving tiny compatibility exports at old import paths only where they reduce migration risk.
+Phase 2 moves implementation ownership into canonical folders while leaving tiny compatibility exports at old import paths only where they reduce migration risk.
 
 Completed:
 
@@ -57,18 +59,25 @@ Completed:
 - local input handling -> `entities/player/useVehicleControls`
 - player physics identity -> `entities/player/localPhysics`
 - Ferrari presentation + vehicle FX -> `entities/vehicle`
-- portfolio feature boundary -> `features/portfolio`
+- PartyKit client state/socket ownership -> `systems/network/useNetworkStore`
+- socket lifecycle + 15 Hz local pose replication -> `systems/network/NetworkSystem`
+- replicated visitor rendering/interpolation/emotes -> `systems/network`
+- portfolio feature composition boundary -> `features/portfolio`
 
 Remaining:
 
 - portfolio district/milestone implementations -> `features/portfolio`
 - race checkpoints/timing -> `features/racing`
-- PartyKit transport/remote players -> `systems/network`
 - ambient rival racers -> `entities/npc` or `features/racing`, depending on final ownership
 - world placement/collider data -> `world/data`
 - world geometry implementations -> `world`
+- remove temporary compatibility exports after all imports point to canonical paths
 
-Compatibility exports are temporary. After all branch-local imports use canonical paths, delete the old `src/components/*` and `src/hooks/*` shims instead of maintaining duplicate APIs indefinitely.
+## Multiplayer authority
+
+The local Rapier body remains authoritative for immediate local driving feel. `NetworkSystem` samples the real rigid-body pose and velocity at 15 Hz and sends it through PartyKit. Remote visitors are rendered as kinematic bodies that interpolate toward received poses. UI may read network state and send explicit social actions, but it must not own connection lifecycle or movement replication cadence.
+
+This is intentionally not a server-authoritative racing simulation yet. If competitive racing becomes authoritative, validation/reconciliation belongs in a dedicated network/racing protocol rather than inside render components.
 
 ## Shared frontend contract with City of Lies
 
