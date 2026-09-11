@@ -4,6 +4,7 @@ import { SceneLighting } from '../rendering/SceneLighting';
 import { PortfolioWorld } from '../world/PortfolioWorld';
 import { WorldPhysics } from '../world/WorldPhysics';
 import { FollowCameraSystem } from '../systems/camera/FollowCameraSystem';
+import { NetworkSystem } from '../systems/network/NetworkSystem';
 import { PerformanceSystem } from '../systems/performance/PerformanceSystem';
 
 /**
@@ -25,6 +26,7 @@ export function GameScene() {
       <PortfolioWorld />
       <WorldPhysics playerRef={localPlayerRef} />
       <FollowCameraSystem targetRef={localPlayerRef} />
+      <NetworkSystem playerRef={localPlayerRef} />
       <PerformanceSystem />
     </>
   );
