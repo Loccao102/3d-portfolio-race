@@ -73,6 +73,10 @@ The architecture migration is complete for the current portfolio runtime:
 
 A few tiny facades remain inside `src/game` to preserve stable relative imports in large migrated scene files. They do not own implementation and can be collapsed later without changing the architecture or runtime ownership.
 
+## Validation gate
+
+The migration branch is protected by `.github/workflows/ci.yml`, which runs `npm ci`, `npm run typecheck` and `npm run build`. The first validation run completed successfully before merge; future pull requests and pushes to `main` use the same gate.
+
 ## Multiplayer authority
 
 The local Rapier body is authoritative for immediate local driving feel. `NetworkSystem` samples its real pose and velocity at 15 Hz and sends it through PartyKit. Remote visitors are kinematic bodies that interpolate toward replicated poses. UI may read network state and send explicit social actions, but it does not own socket lifecycle or movement cadence.
