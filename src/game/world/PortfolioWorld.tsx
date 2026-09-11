@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import { CityBuildings } from './CityBuildings';
+import { StreetDetails } from './StreetDetails';
 import { VietnamCityLayer } from './VietnamCityLayer';
 
 /** Visual world shell for authored GLB assets plus lightweight procedural city dressing. */
@@ -8,6 +9,7 @@ export function PortfolioWorld() {
     <Suspense fallback={null}>
       <CityBuildings />
       <VietnamCityLayer />
+      <StreetDetails />
     </Suspense>
   );
 }
