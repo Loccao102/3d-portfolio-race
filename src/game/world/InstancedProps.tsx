@@ -1,33 +1,18 @@
-import React, { useMemo, useRef, useLayoutEffect } from 'react';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { useGameStore } from '@/stores/useGameStore';
 
 export const InstancedProps: React.FC = () => {
-  const streetLampPolesRef = useRef<THREE.InstancedMesh>(null);
-  const streetLampHeadsRef = useRef<THREE.InstancedMesh>(null);
   const barriersRef = useRef<THREE.InstancedMesh>(null);
+  const bollardsRef = useRef<THREE.InstancedMesh>(null);
   const treesTrunkRef = useRef<THREE.InstancedMesh>(null);
   const treesFoliageRef = useRef<THREE.InstancedMesh>(null);
+  const treeCanopyRef = useRef<THREE.InstancedMesh>(null);
+  const theme = useGameStore((state) => state.theme);
 
-  // Street Lamp Positions along North-South and East-West avenues
-  const lampPositions = useMemo(() => {
-    const pos: [number, number, number, number][] = []; // [x, y, z, rotY]
-    // North-South avenue lamps
-    [-65, -50, -35, -20, 20, 35].forEach((z) => {
-      pos.push([-5.6, 0, z, Math.PI / 2]);
-      pos.push([5.6, 0, z, -Math.PI / 2]);
-    });
-    // East-West avenue lamps
-    [-35, -20, 20, 35].forEach((x) => {
-      pos.push([x, 0, -5.6, 0]);
-      pos.push([x, 0, 5.6, Math.PI]);
-    });
-    return pos;
-  }, []);
-
-  // Traffic Barrier Positions
+  // Traffic barriers stay intentionally sparse around the central crossroads.
   const barrierPositions = useMemo(() => {
     const pos: [number, number, number, number][] = [];
-    // Near intersections and plaza corners
     [-8.5, 8.5].forEach((x) => {
       pos.push([x, 0, 8.5, Math.PI / 4]);
       pos.push([x, 0, -8.5, -Math.PI / 4]);
@@ -35,8 +20,21 @@ export const InstancedProps: React.FC = () => {
     return pos;
   }, []);
 
-  // Stylized Diorama Trees
-  const treePositions = useMemo(() => {
+  // Small roadside bollards add scale without competing with the landmark gateways.
+  const bollardPositions = useMemo(() => {
+    const pos: [number, number, number][] = [];
+    [-24, -16, 16, 24].forEach((z) => {
+      pos.push([-6.7, 0, z], [6.7, 0, z]);
+    });
+    [-25, -17, 17, 25].forEach((x) => {
+      pos.push([x, 0, -6.7], [x, 0, 6.7]);
+    });
+    return pos;
+  }, []);
+
+  // Urban trees sit between road and district architecture. Keep the silhouette organic,
+  // not crystalline, so the city feels lived-in rather than like a tech demo.
+  const treePositions = useMemo<[number, number, number][]>(() => {
     return [
       [-13, 0, 20],
       [13, 0, 20],
@@ -46,14 +44,15 @@ export const InstancedProps: React.FC = () => {
       [20, 0, 13],
       [-20, 0, -13],
       [20, 0, -13],
-      [-28, 0, 18],
-      [28, 0, 18],
-      [-28, 0, -18],
-      [28, 0, -18],
+      [-29, 0, 18],
+      [29, 0, 18],
+      [-29, 0, -18],
+      [29, 0, -18],
+      [-18, 0, 54],
+      [18, 0, 54],
     ];
   }, []);
 
-  // Populate InstancedMesh transform matrices
   useLayoutEffect(() => {
     const matrix = new THREE.Matrix4();
     const position = new THREE.Vector3();
@@ -61,127 +60,86 @@ export const InstancedProps: React.FC = () => {
     const quaternion = new THREE.Quaternion();
     const scale = new THREE.Vector3(1, 1, 1);
 
-    // Street Lamps
-    lampPositions.forEach(([x, y, z, rotY], i) => {
-      // Pole
-      position.set(x, 2.0, z);
-      rotation.set(0, rotY, 0);
-      quaternion.setFromEuler(rotation);
-      matrix.compose(position, quaternion, scale);
-      streetLampPolesRef.current?.setMatrixAt(i, matrix);
-
-      // Head
-      position.set(
-        x + (rotY === Math.PI / 2 ? 0.8 : rotY === -Math.PI / 2 ? -0.8 : 0),
-        4.1,
-        z + (rotY === 0 ? 0.8 : rotY === Math.PI ? -0.8 : 0)
-      );
-      matrix.compose(position, quaternion, scale);
-      streetLampHeadsRef.current?.setMatrixAt(i, matrix);
-    });
-
-    if (streetLampPolesRef.current) {
-      streetLampPolesRef.current.instanceMatrix.needsUpdate = true;
-    }
-    if (streetLampHeadsRef.current) {
-      streetLampHeadsRef.current.instanceMatrix.needsUpdate = true;
-    }
-
-    // Barriers
-    barrierPositions.forEach(([x, y, z, rotY], i) => {
+    barrierPositions.forEach(([x, , z, rotY], index) => {
       position.set(x, 0.45, z);
       rotation.set(0, rotY, 0);
       quaternion.setFromEuler(rotation);
       matrix.compose(position, quaternion, scale);
-      barriersRef.current?.setMatrixAt(i, matrix);
+      barriersRef.current?.setMatrixAt(index, matrix);
     });
+    if (barriersRef.current) barriersRef.current.instanceMatrix.needsUpdate = true;
 
-    if (barriersRef.current) {
-      barriersRef.current.instanceMatrix.needsUpdate = true;
-    }
-
-    // Trees
-    treePositions.forEach(([x, y, z], i) => {
-      // Trunk
-      position.set(x, 0.9, z);
-      rotation.set(0, (i * Math.PI) / 3, 0);
+    bollardPositions.forEach(([x, , z], index) => {
+      position.set(x, 0.34, z);
+      rotation.set(0, 0, 0);
       quaternion.setFromEuler(rotation);
       matrix.compose(position, quaternion, scale);
-      treesTrunkRef.current?.setMatrixAt(i, matrix);
+      bollardsRef.current?.setMatrixAt(index, matrix);
+    });
+    if (bollardsRef.current) bollardsRef.current.instanceMatrix.needsUpdate = true;
 
-      // Foliage
-      position.set(x, 2.6, z);
+    treePositions.forEach(([x, , z], index) => {
+      const yaw = (index * 1.73) % (Math.PI * 2);
+      const size = 0.86 + (index % 4) * 0.07;
+      rotation.set(0, yaw, 0);
+      quaternion.setFromEuler(rotation);
+
+      position.set(x, 0.95 * size, z);
+      scale.set(0.88 * size, 1.08 * size, 0.88 * size);
       matrix.compose(position, quaternion, scale);
-      treesFoliageRef.current?.setMatrixAt(i, matrix);
+      treesTrunkRef.current?.setMatrixAt(index, matrix);
+
+      position.set(x - 0.15, 2.75 * size, z);
+      scale.set(1.08 * size, 0.88 * size, 1.0 * size);
+      matrix.compose(position, quaternion, scale);
+      treesFoliageRef.current?.setMatrixAt(index, matrix);
+
+      position.set(x + 0.42, 3.18 * size, z - 0.12);
+      scale.set(0.72 * size, 0.62 * size, 0.74 * size);
+      matrix.compose(position, quaternion, scale);
+      treeCanopyRef.current?.setMatrixAt(index, matrix);
     });
 
-    if (treesTrunkRef.current) {
-      treesTrunkRef.current.instanceMatrix.needsUpdate = true;
-    }
-    if (treesFoliageRef.current) {
-      treesFoliageRef.current.instanceMatrix.needsUpdate = true;
-    }
-  }, [lampPositions, barrierPositions, treePositions]);
+    if (treesTrunkRef.current) treesTrunkRef.current.instanceMatrix.needsUpdate = true;
+    if (treesFoliageRef.current) treesFoliageRef.current.instanceMatrix.needsUpdate = true;
+    if (treeCanopyRef.current) treeCanopyRef.current.instanceMatrix.needsUpdate = true;
+  }, [barrierPositions, bollardPositions, treePositions]);
+
+  const isLight = theme === 'light';
 
   return (
     <group>
-      {/* 1. Street Lamp Carbon Poles */}
-      <instancedMesh
-        ref={streetLampPolesRef}
-        args={[undefined, undefined, lampPositions.length]}
-        castShadow
-      >
-        <cylinderGeometry args={[0.08, 0.12, 4.0, 8]} />
-        <meshStandardMaterial color="#1e293b" metalness={0.85} roughness={0.2} />
+      {/* Street lighting now belongs to VietnamCityLayer so there is one authored lighting system, not two overlapping sets. */}
+      <instancedMesh ref={barriersRef} args={[undefined, undefined, barrierPositions.length]} castShadow>
+        <boxGeometry args={[2.2, 0.75, 0.28]} />
+        <meshStandardMaterial color={isLight ? '#64748b' : '#263244'} metalness={0.64} roughness={0.34} />
       </instancedMesh>
 
-      {/* 2. Street Lamp Glowing Cantilever Heads */}
-      <instancedMesh
-        ref={streetLampHeadsRef}
-        args={[undefined, undefined, lampPositions.length]}
-      >
-        <boxGeometry args={[0.6, 0.16, 0.35]} />
+      <instancedMesh ref={bollardsRef} args={[undefined, undefined, bollardPositions.length]} castShadow>
+        <cylinderGeometry args={[0.09, 0.12, 0.68, 8]} />
+        <meshStandardMaterial color={isLight ? '#475569' : '#172033'} metalness={0.74} roughness={0.3} />
+      </instancedMesh>
+
+      <instancedMesh ref={treesTrunkRef} args={[undefined, undefined, treePositions.length]} castShadow>
+        <cylinderGeometry args={[0.18, 0.32, 1.9, 7]} />
+        <meshStandardMaterial color="#5b4636" roughness={0.92} metalness={0.02} />
+      </instancedMesh>
+
+      <instancedMesh ref={treesFoliageRef} args={[undefined, undefined, treePositions.length]} castShadow>
+        <icosahedronGeometry args={[1.38, 1]} />
         <meshStandardMaterial
-          color="#f59e0b"
-          emissive="#f59e0b"
-          emissiveIntensity={1.8}
-          roughness={0.2}
+          color={isLight ? '#3f7754' : '#214c3b'}
+          roughness={0.88}
+          metalness={0.01}
         />
       </instancedMesh>
 
-      {/* 3. Traffic Safety Barriers with Neon Stripe */}
-      <instancedMesh
-        ref={barriersRef}
-        args={[undefined, undefined, barrierPositions.length]}
-        castShadow
-      >
-        <boxGeometry args={[2.2, 0.75, 0.28]} />
-        <meshStandardMaterial color="#334155" metalness={0.7} roughness={0.3} />
-      </instancedMesh>
-
-      {/* 4. Stylized Diorama Tree Trunks */}
-      <instancedMesh
-        ref={treesTrunkRef}
-        args={[undefined, undefined, treePositions.length]}
-        castShadow
-      >
-        <cylinderGeometry args={[0.2, 0.38, 1.8, 6]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.8} />
-      </instancedMesh>
-
-      {/* 5. Crystalline Bioluminescent Tree Foliage */}
-      <instancedMesh
-        ref={treesFoliageRef}
-        args={[undefined, undefined, treePositions.length]}
-        castShadow
-      >
-        <dodecahedronGeometry args={[1.5, 0]} />
+      <instancedMesh ref={treeCanopyRef} args={[undefined, undefined, treePositions.length]} castShadow>
+        <icosahedronGeometry args={[1.18, 1]} />
         <meshStandardMaterial
-          color="#059669"
-          emissive="#10b981"
-          emissiveIntensity={0.35}
-          roughness={0.4}
-          metalness={0.2}
+          color={isLight ? '#568a60' : '#2b5f46'}
+          roughness={0.86}
+          metalness={0.01}
         />
       </instancedMesh>
     </group>

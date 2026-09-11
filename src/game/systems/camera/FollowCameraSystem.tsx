@@ -19,16 +19,19 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
   const { camera } = useThree();
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     if (!targetRef.current) return;
 
     const clampedDelta = Math.min(delta, 0.05);
     const { vehicleSpeed, isBoosting } = useGameStore.getState();
+    const speedRatio = Math.min(1, vehicleSpeed / 130);
 
-    const elevation = 14;
-    const distance = 18;
-    const positionLerp = 0.08;
-    const lookAtLerp = 0.12;
+    // Lower than the old diorama camera so buildings, street furniture and signs
+    // read at city scale. Pull back slightly at high speed for racing visibility.
+    const elevation = 9.8 + speedRatio * 2.4;
+    const distance = 15.2 + speedRatio * 2.2;
+    const positionLerp = 1 - Math.exp(-clampedDelta * 5.2);
+    const lookAtLerp = 1 - Math.exp(-clampedDelta * 7.4);
 
     const translation = targetRef.current.translation();
     scratchVehiclePos.set(translation.x, translation.y, translation.z);
@@ -39,20 +42,20 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
 
     if ('fov' in camera) {
       const perspectiveCamera = camera as THREE.PerspectiveCamera;
-      const speedRatio = Math.min(1, vehicleSpeed / 130);
-      const targetFov = 46 + (isBoosting ? 8 : speedRatio * 4.5);
+      const targetFov = 47 + (isBoosting ? 7.5 : speedRatio * 3.5);
       perspectiveCamera.fov = THREE.MathUtils.lerp(
         perspectiveCamera.fov,
         targetFov,
-        clampedDelta * 6,
+        1 - Math.exp(-clampedDelta * 5.5),
       );
       perspectiveCamera.updateProjectionMatrix();
     }
 
-    const lookAheadDistance = 3 + Math.min(6, (vehicleSpeed / 130) * 6);
-    const shakeIntensity = isBoosting ? 0.04 : vehicleSpeed > 90 ? 0.02 : 0;
-    const shakeX = shakeIntensity > 0 ? (Math.random() - 0.5) * shakeIntensity : 0;
-    const shakeY = shakeIntensity > 0 ? (Math.random() - 0.5) * shakeIntensity : 0;
+    const lookAheadDistance = 4.2 + speedRatio * 6.4;
+    const shakeIntensity = isBoosting ? 0.028 : vehicleSpeed > 100 ? 0.012 : 0;
+    const phase = clock.getElapsedTime() * 24;
+    const shakeX = Math.sin(phase) * shakeIntensity;
+    const shakeY = Math.cos(phase * 0.73) * shakeIntensity * 0.65;
 
     scratchDesiredPos.set(
       scratchVehiclePos.x - scratchForward.x * distance + shakeX,
@@ -62,7 +65,7 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
 
     scratchDesiredLookAt.set(
       scratchVehiclePos.x + scratchForward.x * lookAheadDistance,
-      scratchVehiclePos.y + 0.8,
+      scratchVehiclePos.y + 1.05,
       scratchVehiclePos.z + scratchForward.z * lookAheadDistance,
     );
 

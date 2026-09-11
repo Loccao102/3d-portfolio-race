@@ -33,18 +33,17 @@ export const MilestoneZone: React.FC<MilestoneZoneProps> = ({
   const theme = useGameStore((state) => state.theme);
 
   const isLight = theme === 'light';
-  const isNight = theme === 'night';
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (ringRef.current) {
-      ringRef.current.rotation.z = t * 0.4;
-      const scale = 1.0 + Math.sin(t * 2.5) * 0.04;
+      ringRef.current.rotation.z = t * 0.22;
+      const scale = 1 + Math.sin(t * 2.1) * 0.025;
       ringRef.current.scale.set(scale, scale, 1);
     }
     if (beaconRef.current) {
-      beaconRef.current.position.y = 2.5 + Math.sin(t * 2.0) * 0.25;
-      beaconRef.current.rotation.y = t * 0.8;
+      beaconRef.current.position.y = 2.25 + Math.sin(t * 1.7) * 0.16;
+      beaconRef.current.rotation.y = t * 0.5;
     }
   });
 
@@ -71,74 +70,65 @@ export const MilestoneZone: React.FC<MilestoneZoneProps> = ({
         <CylinderCollider args={[2.0, radius]} position={[0, 1.0, 0]} />
       </RigidBody>
 
-      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.06, 0]}>
-        <ringGeometry args={[radius - 0.5, radius, 32]} />
+      {/* A restrained navigation marker: district architecture now does most of the visual storytelling. */}
+      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.075, 0]}>
+        <ringGeometry args={[radius - 0.22, radius, 48]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={isInside ? 0.9 : 0.4}
+          opacity={isInside ? 0.82 : 0.24}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      <mesh position={[0, 4.0, 0]}>
-        <cylinderGeometry args={[radius * 0.9, radius * 0.9, 8.0, 16, 1, true]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={isInside ? 0.2 : 0.06}
-          side={THREE.DoubleSide}
-        />
+      <mesh position={[0, 1.8, 0]}>
+        <cylinderGeometry args={[radius * 0.78, radius * 0.78, 3.6, 28, 1, true]} />
+        <meshBasicMaterial color={color} transparent opacity={isInside ? 0.095 : 0.018} side={THREE.DoubleSide} />
       </mesh>
 
-      <mesh ref={beaconRef} position={[0, 2.5, 0]}>
-        <octahedronGeometry args={[0.7, 0]} />
+      <mesh ref={beaconRef} position={[0, 2.25, 0]}>
+        <octahedronGeometry args={[0.38, 0]} />
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={isInside ? 1.5 : 0.6}
-          roughness={0.2}
-          metalness={0.9}
+          emissiveIntensity={isInside ? 2.1 : 0.9}
+          roughness={0.18}
+          metalness={0.88}
         />
       </mesh>
 
+      <pointLight position={[0, 1.4, 0]} color={color} intensity={isInside ? 2.8 : 0.55} distance={9} decay={2} />
+
       <Html
         center
-        distanceFactor={30}
-        position={[0, 4.4, 0]}
-        className="select-none pointer-events-auto cursor-pointer"
+        distanceFactor={32}
+        position={[0, 3.5, 0]}
+        className="pointer-events-auto select-none cursor-pointer"
         onClick={() => {
           setActiveMilestone(id);
           setCardOpen(true);
         }}
       >
         <div
-          className={`px-3 py-1.5 border text-center font-mono transition-all backdrop-blur-md whitespace-nowrap ${
-            isInside ? 'scale-110 ring-2 ring-cyan-400' : 'scale-100 hover:scale-105'
+          className={`whitespace-nowrap rounded-full border backdrop-blur-xl transition-all ${
+            isInside
+              ? 'scale-105 px-3 py-2 shadow-2xl'
+              : 'scale-90 px-2.5 py-1.5 opacity-75 hover:scale-95 hover:opacity-100'
           } ${
             isLight
-              ? 'bg-white/95 border-slate-300 text-slate-800 shadow-lg'
-              : isNight
-              ? 'bg-black/90 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(0,243,255,0.4)]'
-              : 'bg-slate-950/90 border-slate-700 text-slate-200 shadow-md'
+              ? 'border-slate-300/80 bg-white/85 text-slate-800'
+              : 'border-white/10 bg-[#07101b]/78 text-white shadow-[0_12px_32px_rgba(0,0,0,0.3)]'
           }`}
         >
-          <div
-            className="text-[11px] font-bold tracking-widest uppercase flex items-center justify-center gap-1.5"
-            style={{ color }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full inline-block animate-ping"
-              style={{ backgroundColor: color }}
-            />
-            <span>{label}</span>
-          </div>
-          <div className={`text-[9px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            {sublabel}
+          <div className="flex items-center justify-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }} />
+            <span className="text-[9px] font-black uppercase tracking-[0.18em]" style={{ color }}>
+              {label}
+            </span>
           </div>
           {isInside && (
-            <div className="mt-1 px-1.5 py-0.5 text-[8.5px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded animate-pulse">
-              [E] XEM CHI TIẾT
+            <div className={`mt-1 text-center text-[8px] uppercase tracking-[0.12em] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              {sublabel} • open details
             </div>
           )}
         </div>

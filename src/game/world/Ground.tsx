@@ -2,65 +2,99 @@ import React from 'react';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { useGameStore } from '@/stores/useGameStore';
 
+const DISTRICT_SLABS = [
+  { position: [-42, 0, 42] as [number, number, number], size: [63, 0.12, 64] as [number, number, number] },
+  { position: [42, 0, 42] as [number, number, number], size: [63, 0.12, 64] as [number, number, number] },
+  { position: [-42, 0, -45] as [number, number, number], size: [63, 0.12, 72] as [number, number, number] },
+  { position: [42, 0, -45] as [number, number, number], size: [63, 0.12, 72] as [number, number, number] },
+];
+
 export const Ground: React.FC = () => {
   const theme = useGameStore((state) => state.theme);
   const isLight = theme === 'light';
   const isDark = theme === 'dark';
-  const isNight = theme === 'night';
 
-  const topColor = isLight ? '#f1f5f9' : isDark ? '#1e293b' : '#141c2e';
-  const bevelColor = isLight ? '#cbd5e1' : isDark ? '#0f172a' : '#070b14';
-  const rimColor = isLight ? '#0284c7' : isDark ? '#38bdf8' : '#00f3ff';
-  const gridPrimary = isLight ? '#0284c7' : isDark ? '#38bdf8' : '#00f3ff';
-  const gridSecondary = isLight ? '#94a3b8' : isDark ? '#334155' : '#1e293b';
-  const underglowColor = isLight ? '#38bdf8' : '#00f3ff';
-  const underglowOpacity = isLight ? 0.08 : isDark ? 0.18 : 0.35;
+  const topColor = isLight ? '#d9e0e6' : isDark ? '#111a27' : '#08101d';
+  const slabColor = isLight ? '#e8edf1' : isDark ? '#172231' : '#0e1726';
+  const bevelColor = isLight ? '#b9c3cc' : '#050a12';
+  const rimColor = isLight ? '#0ea5e9' : '#22d3ee';
+  const warmAccent = isLight ? '#d97706' : '#f59e0b';
+  const waterColor = isLight ? '#91b9c7' : '#061525';
 
   return (
     <group>
-      <RigidBody type="fixed" friction={0.4}>
+      <RigidBody type="fixed" friction={0.42}>
         <CuboidCollider args={[95, 10, 125]} position={[0, -10, -5]} />
       </RigidBody>
 
+      {/* Floating city island base. */}
       <group position={[0, -0.01, -5]}>
-        <mesh receiveShadow position={[0, -0.3, 0]}>
-          <boxGeometry args={[186, 0.6, 246]} />
+        <mesh receiveShadow position={[0, -0.34, 0]}>
+          <boxGeometry args={[186, 0.68, 246]} />
+          <meshStandardMaterial color={topColor} roughness={0.88} metalness={0.08} />
+        </mesh>
+
+        <mesh position={[0, -1.35, 0]}>
+          <boxGeometry args={[182, 1.9, 242]} />
+          <meshStandardMaterial color={bevelColor} roughness={0.96} metalness={0.08} />
+        </mesh>
+
+        {/* District blocks create sidewalks/plazas without looking like an infinite debug grid. */}
+        {DISTRICT_SLABS.map((slab, index) => (
+          <mesh
+            key={index}
+            receiveShadow
+            position={[slab.position[0], 0.07, slab.position[2]]}
+          >
+            <boxGeometry args={slab.size} />
+            <meshStandardMaterial
+              color={slabColor}
+              roughness={0.82}
+              metalness={isLight ? 0.05 : 0.14}
+            />
+          </mesh>
+        ))}
+
+        {/* Warm/cool perimeter lighting gives the city a Vietnamese night-street warmth instead of pure cyan. */}
+        {[-93.1, 93.1].map((x, index) => (
+          <mesh key={`rim-x-${index}`} position={[x, 0.045, 0]}>
+            <boxGeometry args={[0.14, 0.09, 246.2]} />
+            <meshBasicMaterial color={index === 0 ? warmAccent : rimColor} />
+          </mesh>
+        ))}
+        {[-123.1, 123.1].map((z, index) => (
+          <mesh key={`rim-z-${index}`} position={[0, 0.045, z]}>
+            <boxGeometry args={[186.2, 0.09, 0.14]} />
+            <meshBasicMaterial color={index === 0 ? rimColor : warmAccent} />
+          </mesh>
+        ))}
+
+        {/* Thin architectural seams on plazas, deliberately sparse rather than a debug grid. */}
+        {[-60, -30, 30, 60].map((x) => (
+          <mesh key={`seam-x-${x}`} position={[x, 0.145, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[0.055, 220]} />
+            <meshBasicMaterial color={isLight ? '#a8b3bd' : '#263449'} transparent opacity={0.42} />
+          </mesh>
+        ))}
+        {[-68, -34, 34, 68].map((z) => (
+          <mesh key={`seam-z-${z}`} position={[0, 0.145, z]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
+            <planeGeometry args={[0.055, 168]} />
+            <meshBasicMaterial color={isLight ? '#a8b3bd' : '#263449'} transparent opacity={0.36} />
+          </mesh>
+        ))}
+
+        {/* Water/void below the floating city edge. */}
+        <mesh position={[0, -3.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[280, 330]} />
           <meshStandardMaterial
-            color={topColor}
-            roughness={isLight ? 0.8 : 0.6}
-            metalness={isLight ? 0.05 : 0.25}
-          />
-        </mesh>
-
-        <mesh position={[0, -1.2, 0]}>
-          <boxGeometry args={[182, 1.8, 242]} />
-          <meshStandardMaterial color={bevelColor} roughness={0.9} metalness={0.1} />
-        </mesh>
-
-        {[-93.1, 93.1].map((x, i) => (
-          <mesh key={`rim-x-${i}`} position={[x, 0.04, 0]}>
-            <boxGeometry args={[0.1, 0.08, 246.2]} />
-            <meshBasicMaterial color={rimColor} />
-          </mesh>
-        ))}
-        {[-123.1, 123.1].map((z, i) => (
-          <mesh key={`rim-z-${i}`} position={[0, 0.04, z]}>
-            <boxGeometry args={[186.2, 0.08, 0.1]} />
-            <meshBasicMaterial color={rimColor} />
-          </mesh>
-        ))}
-
-        <mesh position={[0, -2.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[190, 250]} />
-          <meshBasicMaterial
-            color={underglowColor}
+            color={waterColor}
+            roughness={0.26}
+            metalness={0.42}
             transparent
-            opacity={underglowOpacity}
+            opacity={isLight ? 0.72 : 0.92}
           />
         </mesh>
       </group>
-
-      <gridHelper args={[186, 62, gridPrimary, gridSecondary]} position={[0, 0.005, -5]} />
 
       <RigidBody type="fixed">
         <CuboidCollider args={[1, 6, 125]} position={[-93, 3.0, -5]} />
