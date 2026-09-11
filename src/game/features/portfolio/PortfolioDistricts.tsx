@@ -1,6 +1,7 @@
 import React from 'react';
 import { AboutDistrict } from './AboutDistrict';
 import { ContactStation } from './ContactStation';
+import { DistrictLandmarks } from './DistrictLandmarks';
 import { ExperimentLab } from './ExperimentLab';
 import { ProjectGarage } from './ProjectGarage';
 import { TechDistrict } from './TechDistrict';
@@ -9,6 +10,7 @@ import { TechDistrict } from './TechDistrict';
 export function PortfolioDistricts() {
   return (
     <>
+      <DistrictLandmarks />
       <AboutDistrict />
       <TechDistrict />
       <ProjectGarage />
