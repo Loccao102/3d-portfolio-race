@@ -1,7 +1,8 @@
 # Unified 3D Architecture
 
-This folder is the canonical runtime architecture for all interactive 3D projects in this account.
-The same top-level shape is intended to be reused by `lies`; only domain entities, world content and features should differ.
+This folder is the canonical runtime architecture for the interactive 3D frontends in this account.
+The same top-level shape is intended to be reused by `Loccao102/city-of-lies`; only domain entities,
+world content and product features should differ.
 
 ## Runtime flow
 
@@ -56,21 +57,30 @@ Next migrations should move implementation files behind these boundaries in this
 
 After a module is migrated, delete the old `src/components/*` implementation path rather than keeping duplicate ownership.
 
-## Shared architecture with Lies
+## Shared frontend contract with City of Lies
 
-`lies` should reuse the same folder vocabulary and dependency direction:
+`city-of-lies` already has a separate Go modular-monolith architecture. Do **not** flatten or replace its
+`domain / application / game / infrastructure` backend boundaries. This contract applies to its interactive
+3D frontend only.
+
+When the City of Lies frontend becomes a navigable 3D world, use the same vocabulary and dependency direction:
 
 ```text
-core/GameScene
-rendering/GameCanvas + SceneLighting
-world/<game-world> + WorldPhysics
-entities/player + npc + interactables
-systems/camera + network + ai + performance
-features/investigation + dialogue + belief-system
-config/
+frontend/src/game/
+  config/
+  core/GameScene
+  rendering/GameCanvas + SceneLighting
+  world/CityWorld + WorldPhysics
+  entities/player + npc + evidence + interactables
+  systems/camera + realtime + ai-presentation + performance
+  features/investigation + dialogue + belief + evidence + truth-submission
 ```
 
-The architecture is shared; the domain is not. Do not create a generic engine package until both projects expose stable duplicated code worth extracting.
+The architecture is shared; the domain and server authority are not. City of Lies keeps server-side truth,
+belief simulation and game outcome authoritative. The 3D frontend visualizes and interacts with that state;
+it must not duplicate the simulation as client authority.
+
+Do not create a generic shared engine package until both projects expose stable duplicated runtime code worth extracting.
 
 ## 3D quality workflow
 
@@ -81,4 +91,4 @@ intent -> object reasoning -> choose procedural/GLB/hybrid -> build first view
 -> run real scene -> inspect representative frames/interactions -> refine
 ```
 
-Build success is not visual validation. Keep physics state authoritative and keep decorative animation clearly separate from simulation.
+Build success is not visual validation. Keep physics/state authority explicit and keep decorative animation clearly separate from simulation.
