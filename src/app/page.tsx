@@ -2,17 +2,18 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { OverlayUI } from '../components/ui/OverlayUI';
-import { useGameStore } from '../stores/useGameStore';
+import { OverlayUI } from '@/components/ui/OverlayUI';
+import { useGameStore } from '@/stores/useGameStore';
+import { getSceneLook } from '@/game/config/scene';
 
-// Dynamically import 3D Canvas with ssr: false to prevent SSR execution of WebGL, Rapier WASM, & Three.js
-const SceneCanvas = dynamic(() => import('../components/three/SceneCanvas'), {
+// Keep all WebGL/Rapier code client-only. The page owns DOM composition only.
+const GameCanvas = dynamic(() => import('@/game/rendering/GameCanvas'), {
   ssr: false,
   loading: () => (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-        <div className="text-xs font-mono tracking-widest text-cyan-400/80 uppercase">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+        <div className="text-xs font-mono uppercase tracking-widest text-cyan-400/80">
           Initializing 3D Simulation...
         </div>
       </div>
@@ -22,24 +23,15 @@ const SceneCanvas = dynamic(() => import('../components/three/SceneCanvas'), {
 
 export default function Home() {
   const theme = useGameStore((state) => state.theme);
-
-  const bgColor =
-    theme === 'light'
-      ? '#e2e8f0'
-      : theme === 'dark'
-      ? '#0f172a'
-      : '#050811';
+  const look = getSceneLook(theme);
 
   return (
     <main
-      className="relative w-full h-screen h-[100dvh] overflow-hidden overscroll-none select-none transition-colors duration-500"
-      style={{ backgroundColor: bgColor }}
+      className="relative h-screen h-[100dvh] w-full select-none overflow-hidden overscroll-none transition-colors duration-500"
+      style={{ backgroundColor: look.background }}
     >
-      {/* 2D HTML/DOM UI Layer */}
       <OverlayUI />
-
-      {/* 3D WebGL Canvas Viewport (Client-only) */}
-      <SceneCanvas />
+      <GameCanvas />
     </main>
   );
 }
