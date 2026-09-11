@@ -3,10 +3,7 @@ import { Environment } from '@react-three/drei';
 import { useGameStore } from '@/stores/useGameStore';
 import { getSceneLook } from '../config/scene';
 
-/**
- * Owns visual atmosphere only: IBL and lights.
- * No world geometry, player state, physics or telemetry belongs here.
- */
+/** Visual atmosphere only: IBL and lights. No runtime policy or gameplay logic. */
 export function SceneLighting() {
   const theme = useGameStore((state) => state.theme);
   const quality = useGameStore((state) => state.quality);
@@ -37,21 +34,9 @@ export function SceneLighting() {
         shadow-bias={-0.0004}
       />
 
-      <directionalLight
-        position={[-55, 40, -55]}
-        intensity={look.cyanIntensity}
-        color="#00f3ff"
-      />
-      <directionalLight
-        position={[55, 30, 55]}
-        intensity={look.magentaIntensity}
-        color="#f472b6"
-      />
-      <directionalLight
-        position={[0, 30, 75]}
-        intensity={look.amberIntensity}
-        color="#f59e0b"
-      />
+      <directionalLight position={[-55, 40, -55]} intensity={look.cyanIntensity} color="#00f3ff" />
+      <directionalLight position={[55, 30, 55]} intensity={look.magentaIntensity} color="#f472b6" />
+      <directionalLight position={[0, 30, 75]} intensity={look.amberIntensity} color="#f59e0b" />
     </>
   );
 }
