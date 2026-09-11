@@ -1,15 +1,11 @@
 import React from 'react';
-import { AboutDistrict } from '@/components/world/districts/AboutDistrict';
-import { TechDistrict } from '@/components/world/districts/TechDistrict';
-import { ProjectGarage } from '@/components/world/districts/ProjectGarage';
-import { ExperimentLab } from '@/components/world/districts/ExperimentLab';
-import { ContactStation } from '@/components/world/districts/ContactStation';
+import { AboutDistrict } from './AboutDistrict';
+import { ContactStation } from './ContactStation';
+import { ExperimentLab } from './ExperimentLab';
+import { ProjectGarage } from './ProjectGarage';
+import { TechDistrict } from './TechDistrict';
 
-/**
- * Portfolio-specific physical feature composition.
- * The implementations are the next migration target; City of Lies replaces
- * this feature entirely while reusing the same scene/world/system shell.
- */
+/** Portfolio-specific physical content. City of Lies replaces this feature, not the engine shell. */
 export function PortfolioDistricts() {
   return (
     <>
