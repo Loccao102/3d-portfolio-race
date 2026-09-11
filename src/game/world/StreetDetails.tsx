@@ -2,6 +2,15 @@ import React, { useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import {
+  BUS_SHELTER_PLACEMENTS,
+  CROSSWALK_PLACEMENTS,
+  PLANTER_PLACEMENTS,
+  STREET_SIGN_PLACEMENTS,
+  TRAFFIC_LIGHT_PLACEMENTS,
+  WET_PATCH_PLACEMENTS,
+  type Vec3,
+} from './data/placementPlan';
 
 function CrosswalkNS({ z }: { z: number }) {
   return (
@@ -34,7 +43,7 @@ function TrafficLight({
   rotation = 0,
   phase = 0,
 }: {
-  position: [number, number, number];
+  position: Vec3;
   rotation?: number;
   phase?: number;
 }) {
@@ -91,7 +100,7 @@ function StreetSign({
   sub,
   accent,
 }: {
-  position: [number, number, number];
+  position: Vec3;
   rotation?: number;
   title: string;
   sub: string;
@@ -121,9 +130,9 @@ function StreetSign({
   );
 }
 
-function BusShelter() {
+function BusShelter({ position, rotation }: { position: Vec3; rotation: number }) {
   return (
-    <group position={[20, 0, 11]} rotation={[0, Math.PI, 0]}>
+    <group position={position} rotation={[0, rotation, 0]}>
       <mesh position={[0, 1.65, 0]} castShadow>
         <boxGeometry args={[5.4, 0.16, 2.2]} />
         <meshStandardMaterial color="#334155" metalness={0.72} roughness={0.3} />
@@ -154,28 +163,19 @@ function BusShelter() {
   );
 }
 
-function WetPatch({
-  position,
-  scale,
-  rotation = 0,
-}: {
-  position: [number, number, number];
-  scale: [number, number];
-  rotation?: number;
-}) {
+function WetPatch({ position, scale, rotation = 0 }: { position: Vec3; scale: [number, number]; rotation?: number }) {
   return (
-    <mesh
-      position={position}
-      rotation={[-Math.PI / 2, 0, rotation]}
-      scale={[scale[0], scale[1], 1]}
-    >
+    <mesh position={position} rotation={[-Math.PI / 2, 0, rotation]} scale={[scale[0], scale[1], 1]}>
       <circleGeometry args={[1, 32]} />
-      <meshStandardMaterial
-        color="#0f2740"
+      <meshPhysicalMaterial
+        color="#0b2438"
         transparent
-        opacity={0.32}
-        roughness={0.12}
-        metalness={0.35}
+        opacity={0.34}
+        roughness={0.08}
+        metalness={0.18}
+        clearcoat={0.7}
+        clearcoatRoughness={0.08}
+        envMapIntensity={1.6}
       />
     </mesh>
   );
@@ -184,29 +184,49 @@ function WetPatch({
 export function StreetDetails() {
   return (
     <group>
-      <CrosswalkNS z={11} />
-      <CrosswalkNS z={-11} />
-      <CrosswalkEW x={11} />
-      <CrosswalkEW x={-11} />
+      {CROSSWALK_PLACEMENTS.map((placement) =>
+        placement.axis === 'ns' ? (
+          <CrosswalkNS key={placement.id} z={placement.value} />
+        ) : (
+          <CrosswalkEW key={placement.id} x={placement.value} />
+        ),
+      )}
 
-      <TrafficLight position={[-7.2, 0, 7.2]} rotation={Math.PI} phase={0} />
-      <TrafficLight position={[7.2, 0, -7.2]} phase={0} />
-      <TrafficLight position={[7.2, 0, 7.2]} rotation={Math.PI / 2} phase={4.5} />
-      <TrafficLight position={[-7.2, 0, -7.2]} rotation={-Math.PI / 2} phase={4.5} />
+      {TRAFFIC_LIGHT_PLACEMENTS.map((placement) => (
+        <TrafficLight
+          key={placement.id}
+          position={placement.position}
+          rotation={placement.rotation}
+          phase={placement.phase}
+        />
+      ))}
 
-      <StreetSign position={[-15, 0, 16]} rotation={0.2} title="PHỐ DEV" sub="About →" accent="#f59e0b" />
-      <StreetSign position={[16, 0, -16]} rotation={Math.PI + 0.1} title="KHU TECH" sub="Data district" accent="#22d3ee" />
-      <StreetSign position={[33, 0, 12]} rotation={-Math.PI / 2} title="DỰ ÁN" sub="Garage →" accent="#fb7185" />
-      <StreetSign position={[-33, 0, -12]} rotation={Math.PI / 2} title="PHÒNG LAB" sub="Experiment →" accent="#a855f7" />
+      {STREET_SIGN_PLACEMENTS.map((placement) => (
+        <StreetSign
+          key={placement.id}
+          position={placement.position}
+          rotation={placement.rotation}
+          title={placement.title}
+          sub={placement.sub}
+          accent={placement.accent}
+        />
+      ))}
 
-      <BusShelter />
+      {BUS_SHELTER_PLACEMENTS.map((placement) => (
+        <BusShelter key={placement.id} position={placement.position} rotation={placement.rotation} />
+      ))}
 
-      <WetPatch position={[5.5, 0.072, 21]} scale={[2.6, 1.2]} rotation={0.25} />
-      <WetPatch position={[-21, 0.074, -5.8]} scale={[1.8, 3.1]} rotation={-0.3} />
-      <WetPatch position={[36, 0.072, -7]} scale={[2.2, 1.1]} rotation={0.65} />
+      {WET_PATCH_PLACEMENTS.map((placement) => (
+        <WetPatch
+          key={placement.id}
+          position={placement.position}
+          scale={placement.scale}
+          rotation={placement.rotation}
+        />
+      ))}
 
-      {[-15, -5, 5, 15].map((x) => (
-        <group key={`planter-${x}`} position={[x, 0, 16.5]}>
+      {PLANTER_PLACEMENTS.map((placement) => (
+        <group key={placement.id} position={placement.position}>
           <mesh position={[0, 0.35, 0]} castShadow>
             <boxGeometry args={[2.2, 0.7, 1.2]} />
             <meshStandardMaterial color="#374151" roughness={0.75} />

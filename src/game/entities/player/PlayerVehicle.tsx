@@ -29,6 +29,8 @@ export const PlayerVehicle = React.forwardRef<RapierRigidBody, PlayerVehicleProp
     const tickRaceTimer = useGameStore((state) => state.tickRaceTimer);
 
     const speedRef = useRef(0);
+    const previousSpeedRef = useRef(0);
+    const longitudinalAccelRef = useRef(0);
     const headingRef = useRef(0);
     const yawRateRef = useRef(0);
     const steerAngleRef = useRef(0);
@@ -59,7 +61,7 @@ export const PlayerVehicle = React.forwardRef<RapierRigidBody, PlayerVehicleProp
       isBoosting: false,
     });
 
-    useFrame((_, delta) => {
+    useFrame(({ clock }, delta) => {
       const body =
         (forwardedRef as React.RefObject<RapierRigidBody | null>)?.current || internalRef.current;
       if (!body) return;
@@ -72,6 +74,8 @@ export const PlayerVehicle = React.forwardRef<RapierRigidBody, PlayerVehicleProp
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
         speedRef.current = 0;
+        previousSpeedRef.current = 0;
+        longitudinalAccelRef.current = 0;
         headingRef.current = 0;
         yawRateRef.current = 0;
         body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
@@ -107,6 +111,15 @@ export const PlayerVehicle = React.forwardRef<RapierRigidBody, PlayerVehicleProp
       }
 
       const currentSpeed = speedRef.current;
+      const rawLongitudinalAccel =
+        (currentSpeed - previousSpeedRef.current) / Math.max(clampedDelta, 0.001);
+      previousSpeedRef.current = currentSpeed;
+      longitudinalAccelRef.current = THREE.MathUtils.lerp(
+        longitudinalAccelRef.current,
+        rawLongitudinalAccel,
+        1 - Math.exp(-clampedDelta * 8),
+      );
+
       const isReversing = currentSpeed < -0.1 || controls.forward < 0;
       const speedRatio = Math.min(1, Math.abs(currentSpeed) / 24);
       const dynamicTurnSpeed = THREE.MathUtils.lerp(1.85, 1.15, speedRatio);
@@ -158,24 +171,46 @@ export const PlayerVehicle = React.forwardRef<RapierRigidBody, PlayerVehicleProp
       wasBoostingRef.current = isBoosting;
 
       if (chassisMeshRef.current) {
+        const accelPitch = THREE.MathUtils.clamp(
+          -longitudinalAccelRef.current * 0.0038,
+          -0.075,
+          0.075,
+        );
+        const brakeDive = controls.brake && Math.abs(currentSpeed) > 1 ? 0.035 : 0;
+        const reverseBias = currentSpeed < 0 ? -0.018 : 0;
+        const targetPitch = accelPitch + brakeDive + reverseBias;
+        const targetRoll = THREE.MathUtils.clamp(
+          -yawRateRef.current * speedRatio * 0.072 * (currentSpeed >= 0 ? 1 : -1),
+          -0.105,
+          0.105,
+        );
+        const roadBob = Math.sin(clock.getElapsedTime() * (6.5 + speedRatio * 10)) * 0.012 * speedRatio;
+        const compression = Math.min(0.022, Math.abs(longitudinalAccelRef.current) * 0.00055);
+
         chassisMeshRef.current.rotation.z = THREE.MathUtils.lerp(
           chassisMeshRef.current.rotation.z,
-          -yawRateRef.current * 0.08 * (currentSpeed >= 0 ? 1 : -1),
-          0.15,
+          targetRoll,
+          1 - Math.exp(-clampedDelta * 9),
         );
         chassisMeshRef.current.rotation.x = THREE.MathUtils.lerp(
           chassisMeshRef.current.rotation.x,
-          currentSpeed >= 0 ? controls.forward * 0.05 : -0.04,
-          0.15,
+          targetPitch,
+          1 - Math.exp(-clampedDelta * 10),
+        );
+        chassisMeshRef.current.position.y = THREE.MathUtils.lerp(
+          chassisMeshRef.current.position.y,
+          0.02 + roadBob - compression,
+          1 - Math.exp(-clampedDelta * 10),
         );
       }
 
       if (thrusterRef.current) {
         const isDrivingForward = controls.forward > 0 && currentSpeed > 0;
+        const pulse = 0.5 + 0.5 * Math.sin(clock.getElapsedTime() * 34);
         const targetScale = isBoosting
-          ? 2.4 + Math.random() * 0.8
+          ? 2.4 + pulse * 0.7
           : isDrivingForward
-            ? 1 + Math.random() * 0.4
+            ? 1 + pulse * 0.28
             : 0.2;
         thrusterRef.current.scale.set(
           isBoosting ? 1.4 : 1,
@@ -276,6 +311,7 @@ export const PlayerVehicle = React.forwardRef<RapierRigidBody, PlayerVehicleProp
 
           <VehicleEffects
             speedRef={speedRef}
+            corneringRef={yawRateRef}
             isAccelerating={vehicleFX.isAccelerating}
             isBraking={vehicleFX.isBraking}
             isBoosting={vehicleFX.isBoosting}
