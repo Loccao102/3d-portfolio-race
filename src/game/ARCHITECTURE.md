@@ -14,7 +14,9 @@ app/page.tsx
           -> world/PortfolioWorld
           -> world/WorldPhysics
               -> entities/player/LocalPlayer
+                  -> entities/player/PlayerVehicle
           -> systems/camera/FollowCameraSystem
+          -> systems/performance/PerformanceSystem
 ```
 
 ## Canonical folders
@@ -41,21 +43,32 @@ src/game/
 7. `features` own user-facing capabilities such as portfolio milestones, racing, dialogue or investigation. A feature may combine systems/entities but should not configure the renderer.
 8. `config` contains authored defaults. Do not duplicate lighting/camera/physics constants across components.
 
-## Migration strategy
+## Migration status
 
-The first migration preserves the existing tested implementations behind canonical boundaries. For example `LocalPlayer` currently adapts the existing `Vehicle`, and `PortfolioWorld` adapts existing city components. This allows architecture changes without simultaneously rewriting driving physics, GLB assets and portfolio content.
+Phase 2 is moving implementation ownership into the canonical folders while leaving tiny compatibility exports at old import paths only where they reduce migration risk.
 
-Next migrations should move implementation files behind these boundaries in this order:
+Completed:
 
-- player vehicle/controller/effects -> `entities/player` and `entities/vehicle`
-- portfolio districts/milestones -> `features/portfolio`
-- race checkpoints/timing -> `features/racing`
-- PartyKit transport/remote players -> `systems/network`
-- world placement/collider data -> `world/data`
+- renderer host and scene composition -> `rendering` + `core`
+- lighting/look configuration -> `rendering` + `config`
 - camera implementation -> `systems/camera`
 - performance adaptation -> `systems/performance`
+- local player driving implementation -> `entities/player/PlayerVehicle`
+- local input handling -> `entities/player/useVehicleControls`
+- player physics identity -> `entities/player/localPhysics`
+- Ferrari presentation + vehicle FX -> `entities/vehicle`
+- portfolio feature boundary -> `features/portfolio`
 
-After a module is migrated, delete the old `src/components/*` implementation path rather than keeping duplicate ownership.
+Remaining:
+
+- portfolio district/milestone implementations -> `features/portfolio`
+- race checkpoints/timing -> `features/racing`
+- PartyKit transport/remote players -> `systems/network`
+- ambient rival racers -> `entities/npc` or `features/racing`, depending on final ownership
+- world placement/collider data -> `world/data`
+- world geometry implementations -> `world`
+
+Compatibility exports are temporary. After all branch-local imports use canonical paths, delete the old `src/components/*` and `src/hooks/*` shims instead of maintaining duplicate APIs indefinitely.
 
 ## Shared frontend contract with City of Lies
 
