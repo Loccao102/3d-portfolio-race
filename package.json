@@ -9,6 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit --incremental false",
     "test:physics": "node scripts/test-physics.cjs",
+    "test:world": "node scripts/check-world-integrity.cjs",
     "party": "partykit dev"
   },
   "dependencies": {
