@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useGameStore, type MilestoneId } from '@/stores/useGameStore';
 import { DISTRICT_EXPERIENCES } from '@/game/features/portfolio/data/districtExperience';
 import { useExperienceStore } from '@/game/features/portfolio/useExperienceStore';
+import { useExperiencePreferences } from '@/game/stores/useExperiencePreferences';
 
 const scratchVehiclePos = new THREE.Vector3();
 const scratchDesiredPos = new THREE.Vector3();
@@ -34,6 +35,7 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
     if (!targetRef.current) return;
 
     const clampedDelta = Math.min(delta, 0.05);
+    const reducedMotion = useExperiencePreferences.getState().reducedMotion;
     const experience = useExperienceStore.getState();
     const tourDistrict = DISTRICT_EXPERIENCES[
       Math.min(experience.tourIndex, DISTRICT_EXPERIENCES.length - 1)
@@ -45,7 +47,11 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
       tourDistrict;
 
     if (useAuthoredTourShot) {
-      const orbit = experience.tourStatus === 'running' ? Math.sin(clock.getElapsedTime() * 0.28) * 0.75 : 0;
+      const orbit = reducedMotion
+        ? 0
+        : experience.tourStatus === 'running'
+          ? Math.sin(clock.getElapsedTime() * 0.28) * 0.75
+          : 0;
       scratchDesiredPos.set(
         tourDistrict.cameraPosition[0] + orbit,
         tourDistrict.cameraPosition[1],
@@ -53,8 +59,8 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
       );
       scratchDesiredLookAt.set(...tourDistrict.lookAt);
 
-      const shotPositionLerp = 1 - Math.exp(-clampedDelta * 2.8);
-      const shotLookLerp = 1 - Math.exp(-clampedDelta * 3.4);
+      const shotPositionLerp = 1 - Math.exp(-clampedDelta * (reducedMotion ? 5.2 : 2.8));
+      const shotLookLerp = 1 - Math.exp(-clampedDelta * (reducedMotion ? 5.6 : 3.4));
       camera.position.lerp(scratchDesiredPos, shotPositionLerp);
       currentLookAt.current.lerp(scratchDesiredLookAt, shotLookLerp);
       camera.lookAt(currentLookAt.current);
@@ -73,9 +79,6 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
 
     const { vehicleSpeed, isBoosting, activeMilestone } = useGameStore.getState();
     const speedRatio = Math.min(1, vehicleSpeed / 130);
-
-    // Lower than the old diorama camera so buildings, street furniture and signs
-    // read at city scale. Pull back slightly at high speed for racing visibility.
     const elevation = 9.8 + speedRatio * 2.4;
     const distance = 15.2 + speedRatio * 2.2;
     const positionLerp = 1 - Math.exp(-clampedDelta * 5.2);
@@ -90,13 +93,14 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
 
     const districtAnchor = activeMilestone ? DISTRICT_FOCUS[activeMilestone] : undefined;
     const cinematicAmount = districtAnchor
-      ? THREE.MathUtils.clamp(1 - vehicleSpeed / 48, 0, 1) * 0.36
+      ? THREE.MathUtils.clamp(1 - vehicleSpeed / 48, 0, 1) * (reducedMotion ? 0.18 : 0.36)
       : 0;
 
     if ('fov' in camera) {
       const perspectiveCamera = camera as THREE.PerspectiveCamera;
       const explorationFovBoost = cinematicAmount * 2.2;
-      const targetFov = 47 + explorationFovBoost + (isBoosting ? 7.5 : speedRatio * 3.5);
+      const motionFov = reducedMotion ? 0 : isBoosting ? 7.5 : speedRatio * 3.5;
+      const targetFov = 47 + explorationFovBoost + motionFov;
       perspectiveCamera.fov = THREE.MathUtils.lerp(
         perspectiveCamera.fov,
         targetFov,
@@ -106,7 +110,7 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
     }
 
     const lookAheadDistance = 4.2 + speedRatio * 6.4;
-    const shakeIntensity = isBoosting ? 0.028 : vehicleSpeed > 100 ? 0.012 : 0;
+    const shakeIntensity = reducedMotion ? 0 : isBoosting ? 0.028 : vehicleSpeed > 100 ? 0.012 : 0;
     const phase = clock.getElapsedTime() * 24;
     const shakeX = Math.sin(phase) * shakeIntensity;
     const shakeY = Math.cos(phase * 0.73) * shakeIntensity * 0.65;
@@ -123,9 +127,6 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
       scratchVehiclePos.z + scratchForward.z * lookAheadDistance,
     );
 
-    // When the player slows down inside a portfolio district, blend the camera
-    // toward that district's signature landmark. At speed this automatically
-    // falls back to the normal chase camera so racing readability is preserved.
     if (districtAnchor && cinematicAmount > 0) {
       scratchDistrictFocus.set(...districtAnchor);
       scratchDesiredLookAt.lerp(scratchDistrictFocus, cinematicAmount);

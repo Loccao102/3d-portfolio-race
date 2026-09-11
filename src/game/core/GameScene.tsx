@@ -3,6 +3,7 @@ import type { RapierRigidBody } from '@react-three/rapier';
 import { SceneLighting } from '../rendering/SceneLighting';
 import { PortfolioWorld } from '../world/PortfolioWorld';
 import { WorldPhysics } from '../world/WorldPhysics';
+import { AccessibilitySystem } from '../systems/accessibility/AccessibilitySystem';
 import { AmbientCityLife } from '../systems/ambient/AmbientCityLife';
 import { FollowCameraSystem } from '../systems/camera/FollowCameraSystem';
 import { NetworkSystem } from '../systems/network/NetworkSystem';
@@ -24,6 +25,7 @@ export function GameScene() {
 
   return (
     <>
+      <AccessibilitySystem />
       <SceneLighting />
       <PortfolioWorld />
       <WorldPhysics playerRef={localPlayerRef} />
