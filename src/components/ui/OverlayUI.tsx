@@ -1,6 +1,8 @@
 'use client';
 import React, { useEffect } from 'react';
 import { DistrictProgress } from './DistrictProgress';
+import { DistrictExperienceHUD } from './DistrictExperienceHUD';
+import { RecruiterTourHUD } from './RecruiterTourHUD';
 import { Intro } from './Intro';
 import { HUD } from './HUD';
 import { MilestoneCard } from './MilestoneCard';
@@ -25,6 +27,8 @@ export const OverlayUI: React.FC = () => {
       <Intro />
       <HUD />
       <DistrictProgress />
+      <DistrictExperienceHUD />
+      <RecruiterTourHUD />
       <RaceHUD />
       <NitroOverlay />
       <MilestoneCard />

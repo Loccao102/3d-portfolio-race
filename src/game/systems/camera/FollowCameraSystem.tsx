@@ -3,6 +3,8 @@ import { useFrame, useThree } from '@react-three/fiber';
 import type { RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useGameStore, type MilestoneId } from '@/stores/useGameStore';
+import { DISTRICT_EXPERIENCES } from '@/game/features/portfolio/data/districtExperience';
+import { useExperienceStore } from '@/game/features/portfolio/useExperienceStore';
 
 const scratchVehiclePos = new THREE.Vector3();
 const scratchDesiredPos = new THREE.Vector3();
@@ -32,6 +34,43 @@ export function FollowCameraSystem({ targetRef }: FollowCameraSystemProps) {
     if (!targetRef.current) return;
 
     const clampedDelta = Math.min(delta, 0.05);
+    const experience = useExperienceStore.getState();
+    const tourDistrict = DISTRICT_EXPERIENCES[
+      Math.min(experience.tourIndex, DISTRICT_EXPERIENCES.length - 1)
+    ];
+
+    const useAuthoredTourShot =
+      experience.mode === 'tour' &&
+      (experience.tourPhase === 'hold' || experience.tourStatus === 'complete') &&
+      tourDistrict;
+
+    if (useAuthoredTourShot) {
+      const orbit = experience.tourStatus === 'running' ? Math.sin(clock.getElapsedTime() * 0.28) * 0.75 : 0;
+      scratchDesiredPos.set(
+        tourDistrict.cameraPosition[0] + orbit,
+        tourDistrict.cameraPosition[1],
+        tourDistrict.cameraPosition[2] + orbit * 0.28,
+      );
+      scratchDesiredLookAt.set(...tourDistrict.lookAt);
+
+      const shotPositionLerp = 1 - Math.exp(-clampedDelta * 2.8);
+      const shotLookLerp = 1 - Math.exp(-clampedDelta * 3.4);
+      camera.position.lerp(scratchDesiredPos, shotPositionLerp);
+      currentLookAt.current.lerp(scratchDesiredLookAt, shotLookLerp);
+      camera.lookAt(currentLookAt.current);
+
+      if ('fov' in camera) {
+        const perspectiveCamera = camera as THREE.PerspectiveCamera;
+        perspectiveCamera.fov = THREE.MathUtils.lerp(
+          perspectiveCamera.fov,
+          43,
+          1 - Math.exp(-clampedDelta * 3.2),
+        );
+        perspectiveCamera.updateProjectionMatrix();
+      }
+      return;
+    }
+
     const { vehicleSpeed, isBoosting, activeMilestone } = useGameStore.getState();
     const speedRatio = Math.min(1, vehicleSpeed / 130);
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useGameStore } from '@/stores/useGameStore';
+import { useExperienceStore } from '@/game/features/portfolio/useExperienceStore';
 
 export interface VehicleControlsState {
   forward: number;
@@ -154,6 +155,15 @@ export function useVehicleControls() {
   }, [setIntroFinished, toggleZenMode]);
 
   return (): VehicleControlsState => {
+    if (useExperienceStore.getState().mode === 'tour') {
+      controls.current.forward = 0;
+      controls.current.turn = 0;
+      controls.current.brake = false;
+      controls.current.boost = false;
+      controls.current.reset = false;
+      return controls.current;
+    }
+
     let forward = 0;
     let turn = 0;
 
