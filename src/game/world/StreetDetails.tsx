@@ -164,7 +164,11 @@ function WetPatch({
   rotation?: number;
 }) {
   return (
-    <mesh position={position} rotation={[-Math.PI / 2, 0, rotation]}>
+    <mesh
+      position={position}
+      rotation={[-Math.PI / 2, 0, rotation]}
+      scale={[scale[0], scale[1], 1]}
+    >
       <circleGeometry args={[1, 32]} />
       <meshStandardMaterial
         color="#0f2740"
@@ -173,7 +177,6 @@ function WetPatch({
         roughness={0.12}
         metalness={0.35}
       />
-      <primitive object={new THREE.Vector2(...scale)} attach="scale" />
     </mesh>
   );
 }
