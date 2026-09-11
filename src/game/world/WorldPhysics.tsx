@@ -7,6 +7,7 @@ import { RacingFeature } from '../features/racing/RacingFeature';
 import { RemotePlayers } from '../systems/network/RemotePlayers';
 import { Ground } from './Ground';
 import { InstancedProps } from './InstancedProps';
+import { UrbanColliders } from './UrbanColliders';
 
 interface WorldPhysicsProps {
   playerRef: React.RefObject<RapierRigidBody | null>;
@@ -19,6 +20,7 @@ export function WorldPhysics({ playerRef }: WorldPhysicsProps) {
       <Physics gravity={PHYSICS_CONFIG.gravity} timeStep={PHYSICS_CONFIG.timeStep}>
         <Ground />
         <InstancedProps />
+        <UrbanColliders />
         <PortfolioDistricts />
         <RacingFeature />
         <LocalPlayer ref={playerRef} />
