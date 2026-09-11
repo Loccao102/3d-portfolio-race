@@ -3,6 +3,8 @@ import React, { useEffect } from 'react';
 import { DistrictProgress } from './DistrictProgress';
 import { DistrictExperienceHUD } from './DistrictExperienceHUD';
 import { RecruiterTourHUD } from './RecruiterTourHUD';
+import { ProjectCaseStudyHUD } from './ProjectCaseStudyHUD';
+import { MultiplayerPresenceHUD } from './MultiplayerPresenceHUD';
 import { Intro } from './Intro';
 import { HUD } from './HUD';
 import { MilestoneCard } from './MilestoneCard';
@@ -29,6 +31,8 @@ export const OverlayUI: React.FC = () => {
       <DistrictProgress />
       <DistrictExperienceHUD />
       <RecruiterTourHUD />
+      <ProjectCaseStudyHUD />
+      <MultiplayerPresenceHUD />
       <RaceHUD />
       <NitroOverlay />
       <MilestoneCard />
