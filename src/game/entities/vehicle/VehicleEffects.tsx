@@ -5,41 +5,49 @@ import * as THREE from 'three';
 interface VehicleEffectsProps {
   speed?: number;
   speedRef?: React.RefObject<number>;
+  corneringRef?: React.RefObject<number>;
   isAccelerating: boolean;
   isBraking: boolean;
   isBoosting?: boolean;
 }
 
-const PARTICLE_COUNT = 24;
+const PARTICLE_COUNT = 28;
 
 export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
   speed = 0,
   speedRef,
+  corneringRef,
   isAccelerating,
   isBraking,
   isBoosting = false,
 }) => {
   const particlesRef = useRef<THREE.InstancedMesh>(null);
+  const leftHazeRef = useRef<THREE.MeshBasicMaterial>(null);
+  const rightHazeRef = useRef<THREE.MeshBasicMaterial>(null);
   const particles = useMemo(
     () =>
-      Array.from({ length: PARTICLE_COUNT }, () => ({
+      Array.from({ length: PARTICLE_COUNT }, (_, index) => ({
         pos: new THREE.Vector3(0, -100, 0),
         vel: new THREE.Vector3(0, 0, 0),
-        life: 0,
-        maxLife: 0.35 + Math.random() * 0.25,
-        size: 0.16 + Math.random() * 0.16,
+        life: 1,
+        maxLife: 0.34 + ((index * 17) % 9) * 0.025,
+        size: 0.14 + ((index * 11) % 7) * 0.025,
       })),
     [],
   );
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     if (!particlesRef.current) return;
 
     const currentSpeed = speedRef ? Math.abs(speedRef.current) : speed;
+    const cornering = Math.abs(corneringRef?.current ?? 0);
+    const hardCorner = currentSpeed > 8 && cornering > 0.58;
+    const brakeSlip = isBraking && currentSpeed > 5;
     const shouldEmit =
-      (isAccelerating && currentSpeed > 2) ||
-      (isBraking && currentSpeed > 2) ||
+      (isAccelerating && currentSpeed > 12) ||
+      brakeSlip ||
+      hardCorner ||
       isBoosting;
 
     particles.forEach((particle, index) => {
@@ -47,21 +55,22 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
 
       if (particle.life < particle.maxLife) {
         particle.pos.addScaledVector(particle.vel, delta);
-        particle.vel.y += delta * 0.25;
+        particle.vel.y += delta * 0.18;
         const progress = particle.life / particle.maxLife;
-        const scale = particle.size * (1 - progress);
+        const scale = particle.size * (1 - progress * 0.82);
         dummy.position.copy(particle.pos);
-        dummy.scale.set(scale, scale, scale);
+        dummy.scale.set(scale, scale * 0.72, scale);
         dummy.updateMatrix();
         particlesRef.current?.setMatrixAt(index, dummy.matrix);
-      } else if (shouldEmit && Math.random() < 0.3) {
+      } else if (shouldEmit && Math.random() < (isBoosting ? 0.48 : 0.34)) {
         particle.life = 0;
-        const side = Math.random() > 0.5 ? -0.75 : 0.75;
-        particle.pos.set(side + (Math.random() - 0.5) * 0.2, 0.12, 1.35);
+        const side = index % 2 === 0 ? -0.72 : 0.72;
+        const rearBias = brakeSlip || hardCorner ? 1.55 : 1.3;
+        particle.pos.set(side + (Math.random() - 0.5) * 0.16, 0.12, rearBias);
         particle.vel.set(
-          (Math.random() - 0.5) * 0.6,
-          0.3 + Math.random() * 0.4,
-          0.8 + Math.random() * 1.5,
+          (Math.random() - 0.5) * (hardCorner ? 1.05 : 0.55),
+          0.18 + Math.random() * 0.32,
+          0.7 + Math.random() * 1.2,
         );
       } else {
         dummy.position.set(0, -100, 0);
@@ -69,6 +78,15 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
         particlesRef.current?.setMatrixAt(index, dummy.matrix);
       }
     });
+
+    const hazeStrength = THREE.MathUtils.clamp(
+      (brakeSlip ? 0.34 : 0) + (hardCorner ? cornering * 0.22 : 0),
+      0,
+      0.48,
+    );
+    const hazePulse = 0.88 + Math.sin(clock.getElapsedTime() * 19) * 0.08;
+    if (leftHazeRef.current) leftHazeRef.current.opacity = hazeStrength * hazePulse;
+    if (rightHazeRef.current) rightHazeRef.current.opacity = hazeStrength * hazePulse;
 
     particlesRef.current.instanceMatrix.needsUpdate = true;
   });
@@ -82,12 +100,25 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
             <meshBasicMaterial
               color="#00f3ff"
               transparent
-              opacity={0.14}
+              opacity={0.12}
               side={THREE.DoubleSide}
               depthWrite={false}
             />
           </mesh>
         </group>
+      ))}
+
+      {[-0.72, 0.72].map((x, index) => (
+        <mesh key={`tire-haze-${x}`} position={[x, 0.11, 1.48]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.55, 20]} />
+          <meshBasicMaterial
+            ref={index === 0 ? leftHazeRef : rightHazeRef}
+            color="#cbd5e1"
+            transparent
+            opacity={0}
+            depthWrite={false}
+          />
+        </mesh>
       ))}
 
       {isBraking && (
@@ -111,7 +142,8 @@ export const VehicleEffects: React.FC<VehicleEffectsProps> = ({
         <meshBasicMaterial
           color={isBoosting ? '#38bdf8' : '#cbd5e1'}
           transparent
-          opacity={0.38}
+          opacity={isBoosting ? 0.42 : 0.28}
+          depthWrite={false}
         />
       </instancedMesh>
     </group>
