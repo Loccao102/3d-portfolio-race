@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: World integrity
+        run: npm run test:world
+
       - name: Typecheck
         run: npm run typecheck
 
