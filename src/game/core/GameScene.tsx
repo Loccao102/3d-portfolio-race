@@ -7,6 +7,7 @@ import { AmbientCityLife } from '../systems/ambient/AmbientCityLife';
 import { FollowCameraSystem } from '../systems/camera/FollowCameraSystem';
 import { NetworkSystem } from '../systems/network/NetworkSystem';
 import { PerformanceSystem } from '../systems/performance/PerformanceSystem';
+import { RecruiterTourSystem } from '../systems/tour/RecruiterTourSystem';
 
 /**
  * Scene composition root.
@@ -27,6 +28,7 @@ export function GameScene() {
       <PortfolioWorld />
       <WorldPhysics playerRef={localPlayerRef} />
       <AmbientCityLife />
+      <RecruiterTourSystem targetRef={localPlayerRef} />
       <FollowCameraSystem targetRef={localPlayerRef} />
       <NetworkSystem playerRef={localPlayerRef} />
       <PerformanceSystem />
