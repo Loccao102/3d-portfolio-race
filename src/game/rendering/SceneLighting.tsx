@@ -1,12 +1,11 @@
 import React, { Suspense } from 'react';
 import { Environment } from '@react-three/drei';
 import { useGameStore } from '@/stores/useGameStore';
-import { PerformanceMonitor } from '@/components/three/PerformanceMonitor';
 import { getSceneLook } from '../config/scene';
 
 /**
- * Owns visual atmosphere only: IBL, lights and render telemetry.
- * No world geometry, player state or physics belongs in this system.
+ * Owns visual atmosphere only: IBL and lights.
+ * No world geometry, player state, physics or telemetry belongs here.
  */
 export function SceneLighting() {
   const theme = useGameStore((state) => state.theme);
@@ -19,8 +18,6 @@ export function SceneLighting() {
       <Suspense fallback={null}>
         <Environment preset="city" environmentIntensity={look.environmentIntensity} />
       </Suspense>
-
-      <PerformanceMonitor />
 
       <hemisphereLight args={look.hemisphere} />
       <ambientLight intensity={look.ambientIntensity} color={look.ambientColor} />
