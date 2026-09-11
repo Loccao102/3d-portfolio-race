@@ -80,6 +80,8 @@ function DistrictCluster({ center, radius = 42, accent, proxySize, proxyPosition
 }
 
 export const CityBuildings: React.FC = () => {
+  const quality = useGameStore((state) => state.quality);
+
   return (
     <group>
       <DistrictCluster center={[52, 0]} accent="#10b981" proxyPosition={[52, 7, 0]} proxySize={[12, 14, 24]}>
@@ -125,7 +127,7 @@ export const CityBuildings: React.FC = () => {
         <ModelInstance url="/models/grass-trees.glb" position={[22, 0.05, -22]} rotation={[0, -Math.PI / 4, 0]} scale={[8, 7, 8]} />
       </DistrictCluster>
 
-      {useGameStore.getState().quality === 'high' && (
+      {quality === 'high' && (
         <>
           <ModelInstance url="/models/grass-trees-tall.glb" position={[-35, 0.05, 45]} rotation={[0, 0.2, 0]} scale={8} />
           <ModelInstance url="/models/grass-trees-tall.glb" position={[35, 0.05, 45]} rotation={[0, -0.3, 0]} scale={8} />
