@@ -1,12 +1,33 @@
 import React, { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { useGameStore } from '@/stores/useGameStore';
 
 interface ModelInstanceProps {
   url: string;
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: [number, number, number] | number;
+}
+
+function polishMaterial(material: THREE.Material) {
+  const next = material.clone();
+
+  if (next instanceof THREE.MeshStandardMaterial) {
+    next.envMapIntensity = Math.max(1.15, next.envMapIntensity ?? 1);
+    next.roughness = THREE.MathUtils.clamp(next.roughness ?? 0.65, 0.24, 0.76);
+    next.metalness = THREE.MathUtils.clamp(next.metalness ?? 0.06, 0.04, 0.72);
+
+    if (next.map) {
+      next.map.colorSpace = THREE.SRGBColorSpace;
+      next.map.anisotropy = Math.max(next.map.anisotropy, 4);
+    }
+
+    if (next.emissiveMap) next.emissiveMap.colorSpace = THREE.SRGBColorSpace;
+    next.needsUpdate = true;
+  }
+
+  return next;
 }
 
 const ModelInstance: React.FC<ModelInstanceProps> = ({
@@ -16,33 +37,37 @@ const ModelInstance: React.FC<ModelInstanceProps> = ({
   scale = 1,
 }) => {
   const { scene } = useGLTF(url);
+  const quality = useGameStore((state) => state.quality);
+
   const cloned = useMemo(() => {
-    const c = scene.clone(true);
-    c.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        child.castShadow = false;
-        child.receiveShadow = true;
+    const clone = scene.clone(true);
+
+    clone.traverse((child) => {
+      if (!(child as THREE.Mesh).isMesh) return;
+
+      const mesh = child as THREE.Mesh;
+      mesh.castShadow = quality === 'high';
+      mesh.receiveShadow = true;
+
+      if (Array.isArray(mesh.material)) {
+        mesh.material = mesh.material.map(polishMaterial);
+      } else if (mesh.material) {
+        mesh.material = polishMaterial(mesh.material);
       }
     });
-    return c;
-  }, [scene]);
+
+    return clone;
+  }, [scene, quality]);
 
   const scaleArray = typeof scale === 'number' ? [scale, scale, scale] : scale;
 
-  return (
-    <primitive
-      object={cloned}
-      position={position}
-      rotation={rotation}
-      scale={scaleArray}
-    />
-  );
+  return <primitive object={cloned} position={position} rotation={rotation} scale={scaleArray} />;
 };
 
 export const CityBuildings: React.FC = () => {
   return (
     <group>
-      {/* 1. PROJECT GARAGE BACKDROP BUILDINGS (East District) */}
+      {/* Project district backdrop */}
       <ModelInstance
         url="/models/building-garage.glb"
         position={[52, 0.5, 0]}
@@ -62,19 +87,9 @@ export const CityBuildings: React.FC = () => {
         scale={[10, 9, 10]}
       />
 
-      {/* 2. TECH DISTRICT DATA TOWERS (North District) */}
-      <ModelInstance
-        url="/models/building-small-b.glb"
-        position={[-15, 0.5, -48]}
-        rotation={[0, 0, 0]}
-        scale={[8, 12, 8]}
-      />
-      <ModelInstance
-        url="/models/building-small-c.glb"
-        position={[15, 0.5, -48]}
-        rotation={[0, 0, 0]}
-        scale={[8, 13, 8]}
-      />
+      {/* Tech district */}
+      <ModelInstance url="/models/building-small-b.glb" position={[-15, 0.5, -48]} scale={[8, 12, 8]} />
+      <ModelInstance url="/models/building-small-c.glb" position={[15, 0.5, -48]} scale={[8, 13, 8]} />
       <ModelInstance
         url="/models/building-small-d.glb"
         position={[0, 0.5, -60]}
@@ -82,27 +97,12 @@ export const CityBuildings: React.FC = () => {
         scale={[10, 11, 10]}
       />
 
-      {/* 3. ABOUT DISTRICT LOFTS & HEADQUARTERS (South District) */}
-      <ModelInstance
-        url="/models/building-small-a.glb"
-        position={[-14, 0.5, 48]}
-        rotation={[0, 0, 0]}
-        scale={[9, 9, 9]}
-      />
-      <ModelInstance
-        url="/models/building-small-d.glb"
-        position={[14, 0.5, 48]}
-        rotation={[0, 0, 0]}
-        scale={[9, 10, 9]}
-      />
-      <ModelInstance
-        url="/models/building-small-c.glb"
-        position={[0, 0.5, 62]}
-        rotation={[0, 0, 0]}
-        scale={[11, 12, 11]}
-      />
+      {/* About district */}
+      <ModelInstance url="/models/building-small-a.glb" position={[-14, 0.5, 48]} scale={[9, 9, 9]} />
+      <ModelInstance url="/models/building-small-d.glb" position={[14, 0.5, 48]} scale={[9, 10, 9]} />
+      <ModelInstance url="/models/building-small-c.glb" position={[0, 0.5, 62]} scale={[11, 12, 11]} />
 
-      {/* 4. EXPERIMENTS LAB TECH CAMPUS (West District) */}
+      {/* Experiment district */}
       <ModelInstance
         url="/models/building-small-c.glb"
         position={[-52, 0.5, 12]}
@@ -122,35 +122,14 @@ export const CityBuildings: React.FC = () => {
         scale={[10, 9, 12]}
       />
 
-      {/* 5. CONTACT STATION SATELLITE TOWERS */}
-      <ModelInstance
-        url="/models/building-small-a.glb"
-        position={[-12, 0.5, -100]}
-        rotation={[0, 0, 0]}
-        scale={[7, 9, 7]}
-      />
-      <ModelInstance
-        url="/models/building-small-a.glb"
-        position={[12, 0.5, -100]}
-        rotation={[0, 0, 0]}
-        scale={[7, 9, 7]}
-      />
+      {/* Contact district */}
+      <ModelInstance url="/models/building-small-a.glb" position={[-12, 0.5, -100]} scale={[7, 9, 7]} />
+      <ModelInstance url="/models/building-small-a.glb" position={[12, 0.5, -100]} scale={[7, 9, 7]} />
 
-      {/* 6. CENTRAL FOUNTAIN PLAZA (Roundabout Center Islands) */}
-      <ModelInstance
-        url="/models/pavement-fountain.glb"
-        position={[22, 0.05, 22]}
-        rotation={[0, 0, 0]}
-        scale={[7, 6, 7]}
-      />
-      <ModelInstance
-        url="/models/pavement-fountain.glb"
-        position={[-22, 0.05, -22]}
-        rotation={[0, 0, 0]}
-        scale={[7, 6, 7]}
-      />
+      {/* Public realm */}
+      <ModelInstance url="/models/pavement-fountain.glb" position={[22, 0.05, 22]} scale={[7, 6, 7]} />
+      <ModelInstance url="/models/pavement-fountain.glb" position={[-22, 0.05, -22]} scale={[7, 6, 7]} />
 
-      {/* 7. GREEN PARKS & URBAN TREES */}
       <ModelInstance
         url="/models/grass-trees.glb"
         position={[-22, 0.05, 22]}
@@ -163,35 +142,14 @@ export const CityBuildings: React.FC = () => {
         rotation={[0, -Math.PI / 4, 0]}
         scale={[8, 7, 8]}
       />
-      <ModelInstance
-        url="/models/grass-trees-tall.glb"
-        position={[-35, 0.05, 45]}
-        rotation={[0, 0.2, 0]}
-        scale={[8, 8, 8]}
-      />
-      <ModelInstance
-        url="/models/grass-trees-tall.glb"
-        position={[35, 0.05, 45]}
-        rotation={[0, -0.3, 0]}
-        scale={[8, 8, 8]}
-      />
-      <ModelInstance
-        url="/models/grass-trees-tall.glb"
-        position={[-35, 0.05, -45]}
-        rotation={[0, 0.5, 0]}
-        scale={[8, 8, 8]}
-      />
-      <ModelInstance
-        url="/models/grass-trees-tall.glb"
-        position={[35, 0.05, -45]}
-        rotation={[0, -0.4, 0]}
-        scale={[8, 8, 8]}
-      />
+      <ModelInstance url="/models/grass-trees-tall.glb" position={[-35, 0.05, 45]} rotation={[0, 0.2, 0]} scale={8} />
+      <ModelInstance url="/models/grass-trees-tall.glb" position={[35, 0.05, 45]} rotation={[0, -0.3, 0]} scale={8} />
+      <ModelInstance url="/models/grass-trees-tall.glb" position={[-35, 0.05, -45]} rotation={[0, 0.5, 0]} scale={8} />
+      <ModelInstance url="/models/grass-trees-tall.glb" position={[35, 0.05, -45]} rotation={[0, -0.4, 0]} scale={8} />
     </group>
   );
 };
 
-// Preload all city models
 useGLTF.preload('/models/building-garage.glb');
 useGLTF.preload('/models/building-small-a.glb');
 useGLTF.preload('/models/building-small-b.glb');
@@ -200,4 +158,3 @@ useGLTF.preload('/models/building-small-d.glb');
 useGLTF.preload('/models/grass-trees.glb');
 useGLTF.preload('/models/grass-trees-tall.glb');
 useGLTF.preload('/models/pavement-fountain.glb');
-

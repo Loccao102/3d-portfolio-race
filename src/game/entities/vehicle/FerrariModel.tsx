@@ -29,47 +29,73 @@ export const FerrariModel: React.FC<FerrariModelProps> = ({
   const wheelsRef = useRef<THREE.Object3D[]>([]);
   const frontLeftWheelRef = useRef<THREE.Object3D | null>(null);
   const frontRightWheelRef = useRef<THREE.Object3D | null>(null);
-  const wheelRotationRef = useRef<number>(0);
+  const wheelRotationRef = useRef(0);
 
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
 
     const bodyMat = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(bodyColor),
-      metalness: 0.92,
-      roughness: 0.22,
+      metalness: 0.84,
+      roughness: 0.15,
       clearcoat: 1,
-      clearcoatRoughness: 0.08,
-      reflectivity: 0.9,
+      clearcoatRoughness: 0.035,
+      reflectivity: 1,
+      envMapIntensity: 2.2,
+      ior: 1.46,
+      specularIntensity: 1,
     });
+
     const rimMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(accentColor || '#ffffff'),
-      metalness: 0.95,
-      roughness: 0.12,
+      metalness: 1,
+      roughness: 0.1,
+      envMapIntensity: 2.15,
     });
+
     const glassMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#ffffff'),
-      metalness: 0.1,
-      roughness: 0.05,
-      transmission: 0.85,
+      color: new THREE.Color('#dff4ff'),
+      metalness: 0.05,
+      roughness: 0.035,
+      transmission: 0.92,
+      thickness: 0.14,
+      ior: 1.45,
       transparent: true,
-      opacity: 0.88,
+      opacity: 0.94,
+      envMapIntensity: 2.45,
+      attenuationColor: new THREE.Color('#8bd7ff'),
+      attenuationDistance: 2.8,
     });
-    const trimMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#1e293b'),
-      metalness: 0.8,
-      roughness: 0.3,
+
+    const trimMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color('#090d12'),
+      metalness: 0.72,
+      roughness: 0.22,
+      clearcoat: 0.55,
+      clearcoatRoughness: 0.16,
+      envMapIntensity: 1.45,
     });
+
     const brakeMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(accentColor || '#f59e0b'),
-      metalness: 0.8,
-      roughness: 0.2,
+      emissive: new THREE.Color(accentColor || '#f59e0b').multiplyScalar(0.12),
+      metalness: 0.78,
+      roughness: 0.18,
+      envMapIntensity: 1.8,
+    });
+
+    const tireMat = new THREE.MeshStandardMaterial({
+      color: '#05070a',
+      roughness: 0.88,
+      metalness: 0.02,
     });
 
     const wheels: THREE.Object3D[] = [];
+
     clone.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
+        const meshName = mesh.name.toLowerCase();
         mesh.castShadow = true;
         mesh.receiveShadow = true;
 
@@ -78,6 +104,7 @@ export const FerrariModel: React.FC<FerrariModelProps> = ({
         else if (mesh.name === 'glass') mesh.material = glassMat;
         else if (mesh.name === 'trim' || mesh.name === 'plastic_gray') mesh.material = trimMat;
         else if (mesh.name === 'brakes' || mesh.name === 'brake') mesh.material = brakeMat;
+        else if (meshName.includes('tire') || meshName.includes('tyre')) mesh.material = tireMat;
       }
 
       if (['wheel_fl', 'wheel_fr', 'wheel_rl', 'wheel_rr'].includes(child.name)) {
@@ -105,53 +132,63 @@ export const FerrariModel: React.FC<FerrariModelProps> = ({
   return (
     <group ref={carGroupRef} scale={[scale, scale, scale]} position={[0, 0, 0]}>
       <primitive object={clonedScene} />
-      <pointLight position={[0, 0.15, 0]} intensity={2.8} distance={4.5} color={accentColor} />
-      <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[1.7, 3.8]} />
-        <meshBasicMaterial color={accentColor} transparent opacity={0.25} />
+
+      {/* Controlled underbody reflection rather than a full bright rectangle. */}
+      <pointLight position={[0, 0.1, 0]} intensity={1.5} distance={3.6} color={accentColor} />
+      <mesh position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 1.9, 1]}>
+        <circleGeometry args={[0.78, 36]} />
+        <meshBasicMaterial color={accentColor} transparent opacity={0.13} depthWrite={false} />
       </mesh>
 
+      {/* Headlight housings + subtle beam cards. */}
       <group position={[0, 0.42, -1.9]}>
-        <mesh position={[-0.58, 0, 0]}>
-          <sphereGeometry args={[0.06, 12, 12]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
-        <mesh position={[0.58, 0, 0]}>
-          <sphereGeometry args={[0.06, 12, 12]} />
-          <meshBasicMaterial color="#ffffff" />
-        </mesh>
-        <spotLight
-          position={[0, 0.2, 0]}
-          target-position={[0, 0, -15]}
-          intensity={3.5}
-          distance={28}
-          angle={0.65}
-          penumbra={0.6}
-          color="#f0f9ff"
-        />
+        {[-0.58, 0.58].map((x) => (
+          <group key={`headlight-${x}`} position={[x, 0, 0]}>
+            <mesh>
+              <sphereGeometry args={[0.075, 16, 16]} />
+              <meshStandardMaterial color="#effaff" emissive="#dff7ff" emissiveIntensity={3.5} />
+            </mesh>
+            <mesh position={[0, -0.04, -2.4]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.42, 2.8, 1]}>
+              <planeGeometry args={[0.35, 1.8]} />
+              <meshBasicMaterial
+                color="#dff7ff"
+                transparent
+                opacity={0.055}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+              />
+            </mesh>
+          </group>
+        ))}
+        <pointLight position={[0, 0.12, -0.45]} intensity={2.3} distance={10} color="#dff7ff" />
       </group>
 
+      {/* Rear light signature. */}
       <group position={[0, 0.52, 2.05]}>
-        <mesh position={[-0.62, 0, 0]}>
-          <boxGeometry args={[0.22, 0.08, 0.04]} />
-          <meshBasicMaterial color="#ff0044" />
-        </mesh>
-        <mesh position={[0.62, 0, 0]}>
-          <boxGeometry args={[0.22, 0.08, 0.04]} />
-          <meshBasicMaterial color="#ff0044" />
-        </mesh>
+        {[-0.62, 0.62].map((x) => (
+          <group key={`tail-${x}`} position={[x, 0, 0]}>
+            <mesh>
+              <boxGeometry args={[0.3, 0.09, 0.045]} />
+              <meshStandardMaterial color="#450a0a" emissive="#ff174d" emissiveIntensity={2.2} />
+            </mesh>
+            <mesh position={[0, 0, 0.028]}>
+              <boxGeometry args={[0.16, 0.035, 0.02]} />
+              <meshBasicMaterial color="#fb7185" />
+            </mesh>
+          </group>
+        ))}
 
         {isReversing && (
           <>
-            <mesh position={[-0.32, -0.06, 0.01]}>
+            <mesh position={[-0.32, -0.07, 0.02]}>
               <boxGeometry args={[0.15, 0.06, 0.03]} />
-              <meshBasicMaterial color="#ffffff" />
+              <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={2.4} />
             </mesh>
-            <mesh position={[0.32, -0.06, 0.01]}>
+            <mesh position={[0.32, -0.07, 0.02]}>
               <boxGeometry args={[0.15, 0.06, 0.03]} />
-              <meshBasicMaterial color="#ffffff" />
+              <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={2.4} />
             </mesh>
-            <pointLight position={[0, 0, 0.3]} intensity={2.2} distance={4} color="#ffffff" />
+            <pointLight position={[0, 0, 0.35]} intensity={1.7} distance={4} color="#ffffff" />
           </>
         )}
       </group>
