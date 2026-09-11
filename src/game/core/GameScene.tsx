@@ -9,11 +9,11 @@ import { PerformanceSystem } from '../systems/performance/PerformanceSystem';
 /**
  * Scene composition root.
  *
- * Dependency direction:
+ * dependency direction:
  * rendering -> presentation only
  * world     -> environment/domain composition
  * entities  -> stateful actors
- * systems   -> cross-entity behavior (camera/network/performance/etc.)
+ * systems   -> cross-entity behavior
  * core      -> orchestration only
  */
 export function GameScene() {
@@ -22,10 +22,10 @@ export function GameScene() {
   return (
     <>
       <SceneLighting />
-      <PerformanceSystem />
       <PortfolioWorld />
       <WorldPhysics playerRef={localPlayerRef} />
       <FollowCameraSystem targetRef={localPlayerRef} />
+      <PerformanceSystem />
     </>
   );
 }
