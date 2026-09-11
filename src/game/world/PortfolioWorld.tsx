@@ -1,10 +1,7 @@
 import React, { Suspense } from 'react';
-import { CityBuildings } from '@/components/world/CityBuildings';
+import { CityBuildings } from './CityBuildings';
 
-/**
- * Visual world shell. Async authored assets live here and intentionally stay
- * outside the physics subtree until they have authoritative collider proxies.
- */
+/** Visual world shell for authored GLB assets. */
 export function PortfolioWorld() {
   return (
     <Suspense fallback={null}>
