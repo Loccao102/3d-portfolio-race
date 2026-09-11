@@ -23,9 +23,13 @@ if (!placement.includes('sparseByDefault')) {
   fail('purposeful-placement guardrail is missing.');
 }
 
-const totalMatch = districtExperience.match(/TOUR_TOTAL_SECONDS\s*=\s*(\d+)/);
-if (!totalMatch || Number(totalMatch[1]) !== 90) {
-  fail('recruiter tour must remain exactly 90 seconds.');
+const transitionMatch = districtExperience.match(/TOUR_TRANSITION_SECONDS\s*=\s*(\d+)/);
+const holdMatches = [...districtExperience.matchAll(/holdSeconds:\s*(\d+)/g)];
+const transitionSeconds = transitionMatch ? Number(transitionMatch[1]) : NaN;
+const holdSeconds = holdMatches.map((match) => Number(match[1]));
+const totalTourSeconds = transitionSeconds * holdSeconds.length + holdSeconds.reduce((sum, value) => sum + value, 0);
+if (!Number.isFinite(totalTourSeconds) || totalTourSeconds !== 90) {
+  fail(`recruiter tour must remain exactly 90 seconds; resolved ${totalTourSeconds}.`);
 }
 
 for (const id of ['exam-system', 'fintech-payment', 'e-government', 'weather-warning']) {
