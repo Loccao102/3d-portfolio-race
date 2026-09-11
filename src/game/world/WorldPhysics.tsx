@@ -1,20 +1,18 @@
 import React, { Suspense } from 'react';
 import { Physics, type RapierRigidBody } from '@react-three/rapier';
-import { Ground } from '@/components/world/Ground';
-import { InstancedProps } from '@/components/world/InstancedProps';
-import { PortfolioDistricts } from '../features/portfolio/PortfolioDistricts';
-import { LocalPlayer } from '../entities/player/LocalPlayer';
-import { RemotePlayers } from '../systems/network/RemotePlayers';
 import { PHYSICS_CONFIG } from '../config/scene';
+import { LocalPlayer } from '../entities/player/LocalPlayer';
+import { PortfolioDistricts } from '../features/portfolio/PortfolioDistricts';
+import { RacingFeature } from '../features/racing/RacingFeature';
+import { RemotePlayers } from '../systems/network/RemotePlayers';
+import { Ground } from './Ground';
+import { InstancedProps } from './InstancedProps';
 
 interface WorldPhysicsProps {
   playerRef: React.RefObject<RapierRigidBody | null>;
 }
 
-/**
- * Authoritative physical world. Local physics and replicated kinematic visitors
- * live here; lighting/camera/presentation-only assets stay outside.
- */
+/** Authoritative physical world and feature composition boundary. */
 export function WorldPhysics({ playerRef }: WorldPhysicsProps) {
   return (
     <Suspense fallback={null}>
@@ -22,6 +20,7 @@ export function WorldPhysics({ playerRef }: WorldPhysicsProps) {
         <Ground />
         <InstancedProps />
         <PortfolioDistricts />
+        <RacingFeature />
         <LocalPlayer ref={playerRef} />
         <RemotePlayers />
       </Physics>
