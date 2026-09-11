@@ -3,6 +3,8 @@ import { AboutDistrict } from './AboutDistrict';
 import { ContactStation } from './ContactStation';
 import { DistrictLandmarks } from './DistrictLandmarks';
 import { ExperimentLab } from './ExperimentLab';
+import { InteractiveInfrastructure } from './InteractiveInfrastructure';
+import { ProjectArchitectureExperience } from './ProjectArchitectureExperience';
 import { ProjectGarage } from './ProjectGarage';
 import { TechDistrict } from './TechDistrict';
 
@@ -14,8 +16,10 @@ export function PortfolioDistricts() {
       <AboutDistrict />
       <TechDistrict />
       <ProjectGarage />
+      <ProjectArchitectureExperience />
       <ExperimentLab />
       <ContactStation />
+      <InteractiveInfrastructure />
     </>
   );
 }
