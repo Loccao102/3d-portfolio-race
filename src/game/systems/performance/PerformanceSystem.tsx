@@ -1,8 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '@/stores/useGameStore';
 
-/** Runtime telemetry + adaptive quality policy. Kept outside rendering composition. */
+const SAMPLE_FRAMES = 60;
+const LOW_FPS_THRESHOLD = 34;
+const LOW_FPS_WINDOWS_BEFORE_DEGRADE = 4;
+
+/** Runtime telemetry + conservative adaptive quality policy. */
 export function PerformanceSystem() {
   const setFps = useGameStore((state) => state.setFps);
   const quality = useGameStore((state) => state.quality);
@@ -10,29 +14,43 @@ export function PerformanceSystem() {
   const setRaceNotification = useGameStore((state) => state.setRaceNotification);
 
   const frameCount = useRef(0);
-  const lastTime = useRef(performance.now());
+  const lastTime = useRef(typeof performance !== 'undefined' ? performance.now() : 0);
   const lowFpsCyclesRef = useRef(0);
+  const pageVisibleRef = useRef(true);
+
+  useEffect(() => {
+    const updateVisibility = () => {
+      pageVisibleRef.current = !document.hidden;
+      frameCount.current = 0;
+      lowFpsCyclesRef.current = 0;
+      lastTime.current = performance.now();
+    };
+    document.addEventListener('visibilitychange', updateVisibility);
+    return () => document.removeEventListener('visibilitychange', updateVisibility);
+  }, []);
 
   useFrame(() => {
+    if (!pageVisibleRef.current) return;
     frameCount.current += 1;
-    if (frameCount.current < 45) return;
+    if (frameCount.current < SAMPLE_FRAMES) return;
 
     const now = performance.now();
-    const delta = (now - lastTime.current) / 1000;
+    const delta = Math.max(0.001, (now - lastTime.current) / 1000);
     const currentFps = Math.round(frameCount.current / delta);
     const cappedFps = Math.min(60, currentFps);
     setFps(cappedFps);
 
-    if (cappedFps < 32 && quality === 'high') {
+    // Deliberately conservative: one temporary shader/asset spike must not downgrade the whole session.
+    if (cappedFps < LOW_FPS_THRESHOLD && quality === 'high') {
       lowFpsCyclesRef.current += 1;
-      if (lowFpsCyclesRef.current >= 3) {
+      if (lowFpsCyclesRef.current >= LOW_FPS_WINDOWS_BEFORE_DEGRADE) {
         setQuality('low');
-        setRaceNotification('ADAPTIVE PERFORMANCE: TUNED FOR SMOOTH 60 FPS');
-        window.setTimeout(() => setRaceNotification(null), 2500);
+        setRaceNotification('PERFORMANCE MODE: DISTRICT DETAIL + SHADOWS REDUCED');
+        window.setTimeout(() => setRaceNotification(null), 2800);
         lowFpsCyclesRef.current = 0;
       }
-    } else {
-      lowFpsCyclesRef.current = 0;
+    } else if (cappedFps >= LOW_FPS_THRESHOLD + 8) {
+      lowFpsCyclesRef.current = Math.max(0, lowFpsCyclesRef.current - 1);
     }
 
     frameCount.current = 0;
