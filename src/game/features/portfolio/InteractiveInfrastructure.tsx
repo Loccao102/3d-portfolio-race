@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useGameStore } from '@/stores/useGameStore';
 
@@ -55,7 +56,12 @@ export function InteractiveInfrastructure() {
 
   return (
     <group>
-      {/* Project Garage access shutter: visually explains why the garage is an authored destination. */}
+      {!projectApproach && (
+        <RigidBody type="fixed" colliders={false} position={[37.2, 0, 0]}>
+          <CuboidCollider args={[0.18, 2.55, 5]} position={[0, 3.0, 0]} />
+        </RigidBody>
+      )}
+
       <group position={[37.2, 0, 0]}>
         <mesh position={[0, 3.4, -5.2]} castShadow>
           <boxGeometry args={[0.42, 6.8, 0.42]} />
@@ -75,7 +81,12 @@ export function InteractiveInfrastructure() {
         </mesh>
       </group>
 
-      {/* Experiment Lab safety arm: service campus visibly switches from restricted to active. */}
+      {!labApproach && (
+        <RigidBody type="fixed" colliders={false}>
+          <CuboidCollider args={[0.09, 0.09, 2.8]} position={[-34.5, 2.0, -2.6]} />
+        </RigidBody>
+      )}
+
       <group position={[-34.5, 0, -5.4]}>
         <mesh position={[0, 1.1, 0]} castShadow>
           <boxGeometry args={[0.5, 2.2, 0.5]} />
@@ -90,7 +101,6 @@ export function InteractiveInfrastructure() {
         <pointLight position={[0, 2.1, 0]} color={labApproach ? '#22c55e' : '#ef4444'} intensity={1.8} distance={5} />
       </group>
 
-      {/* Contact terminal: a functional interaction surface, placed on the actual Contact approach. */}
       <group position={[8.5, 0, -72]} rotation={[0, -0.25, 0]}>
         <mesh position={[0, 1.5, 0]} castShadow>
           <boxGeometry args={[2.8, 3.0, 1.0]} />
