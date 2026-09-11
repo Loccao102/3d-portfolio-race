@@ -5,7 +5,11 @@ import { ProjectGarage } from '@/components/world/districts/ProjectGarage';
 import { ExperimentLab } from '@/components/world/districts/ExperimentLab';
 import { ContactStation } from '@/components/world/districts/ContactStation';
 
-/** Portfolio-specific world content. Lies will replace this feature, not fork the engine shell. */
+/**
+ * Portfolio-specific physical feature composition.
+ * The implementations are the next migration target; City of Lies replaces
+ * this feature entirely while reusing the same scene/world/system shell.
+ */
 export function PortfolioDistricts() {
   return (
     <>
