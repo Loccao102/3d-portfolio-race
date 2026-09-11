@@ -1,17 +1,17 @@
 export type SceneTheme = 'light' | 'dark' | 'night';
-export type SceneQuality = 'low' | 'medium' | 'high';
+export type SceneQuality = 'low' | 'high';
 
 export const SCENE_CAMERA = {
   position: [0, 20, 28] as [number, number, number],
   fov: 46,
   near: 0.5,
   far: 450,
-} as const;
+};
 
 export const PHYSICS_CONFIG = {
   gravity: [0, -26, 0] as [number, number, number],
   timeStep: 'vary' as const,
-} as const;
+};
 
 export const getSceneLook = (theme: SceneTheme) => {
   const isLight = theme === 'light';
