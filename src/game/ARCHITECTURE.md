@@ -75,7 +75,7 @@ A few tiny facades remain inside `src/game` to preserve stable relative imports 
 
 ## Validation gate
 
-The migration branch is protected by `.github/workflows/ci.yml`, which runs `npm ci`, `npm run typecheck` and `npm run build`. The first validation run completed successfully before merge; future pull requests and pushes to `main` use the same gate.
+`.github/workflows/ci.yml` runs `npm ci`, `npm run typecheck` and `npm run build` on pull requests and pushes to `main`. The migration code passed this validation gate before merge.
 
 ## Multiplayer authority
 
