@@ -1,16 +1,26 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Environment, Sparkles, Stars } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
+import * as THREE from 'three';
 import { useGameStore } from '@/stores/useGameStore';
 import { getSceneLook } from '../config/scene';
 
-/** Visual atmosphere only: IBL, lights and lightweight sky particles. */
+/** Visual atmosphere only: IBL, renderer color management, lights and sky particles. */
 export function SceneLighting() {
   const theme = useGameStore((state) => state.theme);
   const quality = useGameStore((state) => state.quality);
+  const { gl } = useThree();
   const look = getSceneLook(theme);
   const isLowQuality = quality === 'low';
   const isLight = theme === 'light';
   const isNight = theme === 'night';
+
+  useEffect(() => {
+    gl.outputColorSpace = THREE.SRGBColorSpace;
+    gl.toneMapping = THREE.ACESFilmicToneMapping;
+    gl.toneMappingExposure = isLight ? 1.02 : isNight ? 1.14 : 1.08;
+    gl.shadowMap.type = THREE.PCFSoftShadowMap;
+  }, [gl, isLight, isNight]);
 
   return (
     <>
